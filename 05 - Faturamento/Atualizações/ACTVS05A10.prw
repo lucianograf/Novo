@@ -1,7 +1,7 @@
 #include 'totvs.ch'
 #INCLUDE "Topconn.ch"
 #Include "FWMVCDEF.CH"
-
+//teste 28/08/2025 1107
 /*/{Protheus.doc} ACTVS05A10 - 1
 Monitor de Pedidos
 @author -

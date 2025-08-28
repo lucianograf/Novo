@@ -13,7 +13,7 @@ Monitor de Pedidos
 (examples)
 @see (links_or_references)
 /*/
-//27/08/2025 - 10:40 - teste
+//27/08/2025 - 10:40 - teste - teste
 User Function ACTVS05A10()
 
 	Local oBrowse

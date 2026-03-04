@@ -1,6 +1,6 @@
-
+#include "totvs.ch"
 /*/{Protheus.doc} DCFATG02
-Gatilho para retornar o código da 
+Gatilho para retornar o código da Região 
 @type function
 @version  
 @author Marcelo Alberto Lauschner

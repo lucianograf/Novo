@@ -3,7 +3,7 @@
 #INCLUDE "TOPCONN.CH"
 #INCLUDE "COLORS.CH"
 #INCLUDE "FONT.CH"
-/*
+/*teste
 ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 ±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
@@ -253,16 +253,16 @@ User Function MLESTC01()
 	@ 001,375 BUTTON "Lote"            SIZE 30,10 ACTION (nOpSB8:= 2,Processa({||fDetaSB8(0)}))         PIXEL OF oFolder:aDialogs[2] When IF(nOpSB8=1,.T.,.F.)
 	@ 001,420 BUTTON "Pesquisar"       SIZE 30,10 ACTION (fPesquisa("SB8",oDetSB8))                    PIXEL OF oFolder:aDialogs[2]
 	@ 010,005 LISTBOX oDetSB8 Var cModelo FIELDS HEADER;
-	"Data"   ,;
-	"Lote"   ,;
-	"Num.Lote" ,;
-	"Validade" ,;
-	"Saldo" ,;
-	"Qtde.Original" ,;
-	"Status" ,;
-	"Empenho" ,;
-	"Qtde.2UM" ,;
-	"Empenho 2UM" FIELDSIZES 30,40,30,30,40,40,35,40,40,40 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[2]
+		"Data"   ,;
+		"Lote"   ,;
+		"Num.Lote" ,;
+		"Validade" ,;
+		"Saldo" ,;
+		"Qtde.Original" ,;
+		"Status" ,;
+		"Empenho" ,;
+		"Qtde.2UM" ,;
+		"Empenho 2UM" FIELDSIZES 30,40,30,30,40,40,35,40,40,40 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[2]
 	oDetSB8:SetArray(aDetSB8)
 	oDetSB8:bLDblClick := {|| Processa({||fMontaSD5(0)})}
 	oDetSB8:bLine:={ ||{aDetSB8[oDetSB8:nAT,1],aDetSB8[oDetSB8:nAT,2],aDetSB8[oDetSB8:nAT,3],aDetSB8[oDetSB8:nAT,4],aDetSB8[oDetSB8:nAT,5],aDetSB8[oDetSB8:nAT,6],aDetSB8[oDetSB8:nAT,7],aDetSB8[oDetSB8:nAT,8],aDetSB8[oDetSB8:nAT,9],aDetSB8[oDetSB8:nAT,10]}}
@@ -281,19 +281,19 @@ User Function MLESTC01()
 	@ 121,420 BUTTON "Pesquisar"        SIZE 30,10 ACTION (fPesquisa("SD5",oDetSD5))                    PIXEL OF oFolder:aDialogs[2]
 
 	@ 130,005 LISTBOX oDetSD5 Var cDetSD5 FIELDS HEADER;
-	"Data" ,;
-	"TM" ,;
-	"Lote" ,;
-	"Num.Lote" ,;
-	"Validade" ,;
-	"Quantidade" ,;
-	"Saldo" ,;
-	"Num.Seq." ,;
-	"Status" ,;
-	"Documento" ,;
-	"Serie" ,;
-	"Clie.For" ,;
-	"Loja" FIELDSIZES 30,15,40,30,30,40,40,30,35,32,20,30,20 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[2]
+		"Data" ,;
+		"TM" ,;
+		"Lote" ,;
+		"Num.Lote" ,;
+		"Validade" ,;
+		"Quantidade" ,;
+		"Saldo" ,;
+		"Num.Seq." ,;
+		"Status" ,;
+		"Documento" ,;
+		"Serie" ,;
+		"Clie.For" ,;
+		"Loja" FIELDSIZES 30,15,40,30,30,40,40,30,35,32,20,30,20 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[2]
 	oDetSD5:SetArray(aDetSD5)
 	oDetSD5:bLDblClick := {|| Processa({||fMontaSB8(.T.,0)})}
 	oDetSD5:bLine:={ ||{aDetSD5[oDetSD5:nAT,1],aDetSD5[oDetSD5:nAT,2],aDetSD5[oDetSD5:nAT,3],aDetSD5[oDetSD5:nAT,4],aDetSD5[oDetSD5:nAT,5],aDetSD5[oDetSD5:nAT,6],aDetSD5[oDetSD5:nAT,7],aDetSD5[oDetSD5:nAT,8],aDetSD5[oDetSD5:nAT,9],aDetSD5[oDetSD5:nAT,10],aDetSD5[oDetSD5:nAT,11],aDetSD5[oDetSD5:nAT,12],aDetSD5[oDetSD5:nAT,13]}}
@@ -311,16 +311,16 @@ User Function MLESTC01()
 	@ 001,165 BUTTON "Excluir"         SIZE 30,10 ACTION (fAjustSBF("BF_E"))                           PIXEL OF oFolder:aDialogs[3] When IF(nOpSBF=1,.T.,.F.)
 	@ 001,420 BUTTON "Pesquisar"       SIZE 30,10 ACTION (fPesquisa("SBF",oDetSBF))                    PIXEL OF oFolder:aDialogs[3]
 	@ 010,005 LISTBOX oDetSBF Var cModelo FIELDS HEADER;
-	"Localização",;
-	"Lote" ,;
-	"Quantidade" ,;
-	"Status" ,;
-	"Empenho" ,;
-	"Estrutura" ,;
-	"Status End" ,;
-	"Zona" ,;
-	"Qtde.2UM" ,;
-	"Empenho 2UM" FIELDSIZES 50,40,40,35,40,60,40,30,40,40 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[3]
+		"Localização",;
+		"Lote" ,;
+		"Quantidade" ,;
+		"Status" ,;
+		"Empenho" ,;
+		"Estrutura" ,;
+		"Status End" ,;
+		"Zona" ,;
+		"Qtde.2UM" ,;
+		"Empenho 2UM" FIELDSIZES 50,40,40,35,40,60,40,30,40,40 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[3]
 	oDetSBF:SetArray(aDetSBF)
 	oDetSBF:bLDblClick := {|| Processa({||fMontaSDB(0)})}
 	oDetSBF:bLine:={ ||{aDetSBF[oDetSBF:nAT,1],aDetSBF[oDetSBF:nAT,2],aDetSBF[oDetSBF:nAT,3],aDetSBF[oDetSBF:nAT,4],aDetSBF[oDetSBF:nAT,5],aDetSBF[oDetSBF:nAT,6],aDetSBF[oDetSBF:nAT,7],aDetSBF[oDetSBF:nAT,8],aDetSBF[oDetSBF:nAT,9],aDetSBF[oDetSBF:nAT,10]}}
@@ -338,19 +338,19 @@ User Function MLESTC01()
 	@ 121,375 BUTTON "Analisar"         SIZE 30,10 ACTION (Processa({||fMontaSBF(.F.,0)}))                PIXEL OF oFolder:aDialogs[3] When IF(nOpSBF=1,.T.,.F.)
 	@ 121,420 BUTTON "Pesquisar"        SIZE 30,10 ACTION (fPesquisa("SDB",oDetSDB))                    PIXEL OF oFolder:aDialogs[3]
 	@ 130,005 LISTBOX oDetSDB Var cDetSDB FIELDS HEADER;
-	"Origem" ,;
-	"Data" ,;
-	"TM" ,;
-	"Localização" ,;
-	"Lote" ,;
-	"Quantidade" ,;
-	"Saldo" ,;
-	"Num.Seq." ,;
-	"Status" ,;
-	"Documento" ,;
-	"Serie" ,;
-	"Clie.For" ,;
-	"Loja" FIELDSIZES 25,30,15,50,40,40,40,30,35,32,20,30,20 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[3]
+		"Origem" ,;
+		"Data" ,;
+		"TM" ,;
+		"Localização" ,;
+		"Lote" ,;
+		"Quantidade" ,;
+		"Saldo" ,;
+		"Num.Seq." ,;
+		"Status" ,;
+		"Documento" ,;
+		"Serie" ,;
+		"Clie.For" ,;
+		"Loja" FIELDSIZES 25,30,15,50,40,40,40,30,35,32,20,30,20 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[3]
 	oDetSDB:SetArray(aDetSDB)
 	oDetSDB:bLDblClick := {|| Processa({||fMontaSBF(.T.,0)})}
 	oDetSDB:bLine:={ ||{aDetSDB[oDetSDB:nAT,1],aDetSDB[oDetSDB:nAT,2],aDetSDB[oDetSDB:nAT,3],aDetSDB[oDetSDB:nAT,4],aDetSDB[oDetSDB:nAT,5],aDetSDB[oDetSDB:nAT,6],aDetSDB[oDetSDB:nAT,7],aDetSDB[oDetSDB:nAT,8],aDetSDB[oDetSDB:nAT,9],aDetSDB[oDetSDB:nAT,10],aDetSDB[oDetSDB:nAT,11],aDetSDB[oDetSDB:nAT,12],aDetSDB[oDetSDB:nAT,13]}}
@@ -363,14 +363,14 @@ User Function MLESTC01()
 	@ 003,005 SAY "SB8"                SIZE 200,50                                          PIXEL OF oFolder:aDialogs[4] FONT oBold
 	@ 001,420 BUTTON "Processar"       SIZE 30,10 ACTION (Processa({||fDetaB8BF(0)}))        PIXEL OF oFolder:aDialogs[4]
 	@ 010,005 LISTBOX oDet01B8BF Var cModelo FIELDS HEADER;
-	"Lote" ,;
-	"Qtde." ,;
-	"Empenho" ,;
-	"A Classificar" ,;
-	"Qtde.2UM" ,;
-	"Empenho 2UM" ,;
-	"A Classificar 2UM" ,;
-	"Status" FIELDSIZES 40,40,40,40,40,40,40,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[4]
+		"Lote" ,;
+		"Qtde." ,;
+		"Empenho" ,;
+		"A Classificar" ,;
+		"Qtde.2UM" ,;
+		"Empenho 2UM" ,;
+		"A Classificar 2UM" ,;
+		"Status" FIELDSIZES 40,40,40,40,40,40,40,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[4]
 	oDet01B8BF:SetArray(aDet01B8BF)
 	oDet01B8BF:bLine:={ ||{aDet01B8BF[oDet01B8BF:nAT,1],aDet01B8BF[oDet01B8BF:nAT,2],aDet01B8BF[oDet01B8BF:nAT,3],aDet01B8BF[oDet01B8BF:nAT,4],aDet01B8BF[oDet01B8BF:nAT,5],aDet01B8BF[oDet01B8BF:nAT,6],aDet01B8BF[oDet01B8BF:nAT,7],aDet01B8BF[oDet01B8BF:nAT,8]}}
 	oDet01B8BF:Refresh()
@@ -378,12 +378,12 @@ User Function MLESTC01()
 	// Detalhe do SBF
 	@ 123,005 SAY "SBF"                   SIZE 200,50 PIXEL OF oFolder:aDialogs[4] FONT oBold
 	@ 130,005 LISTBOX oDet02B8BF Var cDet02B8BF FIELDS HEADER;
-	"Lote" ,;
-	"Qtde." ,;
-	"Empenho" ,;
-	"Qtde.2UM" ,;
-	"Empenho 2UM" ,;
-	"Status" FIELDSIZES 40,40,40,40,40,35 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[4]
+		"Lote" ,;
+		"Qtde." ,;
+		"Empenho" ,;
+		"Qtde.2UM" ,;
+		"Empenho 2UM" ,;
+		"Status" FIELDSIZES 40,40,40,40,40,35 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[4]
 	oDet02B8BF:SetArray(aDet02B8BF)
 	oDet02B8BF:bLine:={ ||{aDet02B8BF[oDet02B8BF:nAT,1],aDet02B8BF[oDet02B8BF:nAT,2],aDet02B8BF[oDet02B8BF:nAT,3],aDet02B8BF[oDet02B8BF:nAT,4],aDet02B8BF[oDet02B8BF:nAT,5],aDet02B8BF[oDet02B8BF:nAT,6]}}
 	oDet02B8BF:Refresh()
@@ -396,10 +396,10 @@ User Function MLESTC01()
 	@ 003,005 SAY "SBJ"                 SIZE 200,50                                                         PIXEL OF oFolder:aDialogs[5] FONT oBold
 	@ 001,420 BUTTON "Processar"        SIZE 30,10 ACTION (Processa({||fDetaBJBK(0),fDetaSBJ(0),fDetaSBK(0)})) PIXEL OF oFolder:aDialogs[5]
 	@ 010,005 LISTBOX oDetSBJ Var cModelo FIELDS HEADER;
-	"Lote" ,;
-	"Qtde." ,;
-	"Qtde.2UM" ,;
-	"Status" FIELDSIZES 40,40,40,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[5]
+		"Lote" ,;
+		"Qtde." ,;
+		"Qtde.2UM" ,;
+		"Status" FIELDSIZES 40,40,40,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[5]
 	oDetSBJ:SetArray(aDetSBJ)
 	oDetSBJ:bLine:={ ||{aDetSBJ[oDetSBJ:nAT,1],aDetSBJ[oDetSBJ:nAT,2],aDetSBJ[oDetSBJ:nAT,3],aDetSBJ[oDetSBJ:nAT,4]}}
 	oDetSBJ:Refresh()
@@ -407,10 +407,10 @@ User Function MLESTC01()
 	// Detalhe do SBK
 	@ 123,005 SAY "SBK"                   SIZE 200,50 PIXEL OF oFolder:aDialogs[5] FONT oBold
 	@ 130,005 LISTBOX oDetSBK Var cDet02B8BK FIELDS HEADER;
-	"Lote" ,;
-	"Qtde." ,;
-	"Qtde.2UM" ,;
-	"Status" FIELDSIZES 40,40,40,35 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[5]
+		"Lote" ,;
+		"Qtde." ,;
+		"Qtde.2UM" ,;
+		"Status" FIELDSIZES 40,40,40,35 SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[5]
 	oDetSBK:SetArray(aDetSBK)
 	oDetSBK:bLine:={ ||{aDetSBK[oDetSBK:nAT,1],aDetSBK[oDetSBK:nAT,2],aDetSBK[oDetSBK:nAT,3],aDetSBK[oDetSBK:nAT,4]}}
 	oDetSBK:Refresh()
@@ -426,10 +426,10 @@ User Function MLESTC01()
 	@ 001,375 BUTTON "Processar"       SIZE 30,10 ACTION (Processa({||fDetaSBJ(0)})) PIXEL OF oFolder:aDialogs[6]
 	@ 001,420 BUTTON "Pesquisar"       SIZE 30,10 ACTION (fPesquisa("SBJ",oAnaSBJ)) PIXEL OF oFolder:aDialogs[6]
 	@ 010,005 LISTBOX oAnaSBJ Var cModelo FIELDS HEADER;
-	"Lote" ,;
-	"Nunlote" ,;
-	"Validade" ,;
-	"Quantidade" FIELDSIZES 40,30,30,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[6]
+		"Lote" ,;
+		"Nunlote" ,;
+		"Validade" ,;
+		"Quantidade" FIELDSIZES 40,30,30,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[6]
 	oAnaSBJ:SetArray(aAnaSBJ)
 	oAnaSBJ:bLine:={ ||{aAnaSBJ[oAnaSBJ:nAT,1],aAnaSBJ[oAnaSBJ:nAT,2],aAnaSBJ[oAnaSBJ:nAT,3],aAnaSBJ[oAnaSBJ:nAT,4]}}
 	oAnaSBJ:Refresh()
@@ -444,9 +444,9 @@ User Function MLESTC01()
 	@ 001,375 BUTTON "Processar"       SIZE 30,10 ACTION (Processa({||fDetaSBK(0)})) PIXEL OF oFolder:aDialogs[7]
 	@ 001,420 BUTTON "Pesquisar"       SIZE 30,10 ACTION (fPesquisa("SBK",oAnaSBK)) PIXEL OF oFolder:aDialogs[7]
 	@ 010,005 LISTBOX oAnaSBK Var cDet02B8BK FIELDS HEADER;
-	"Endereco" ,;
-	"Lote" ,;
-	"Quantidade" FIELDSIZES 50,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[7]
+		"Endereco" ,;
+		"Lote" ,;
+		"Quantidade" FIELDSIZES 50,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[7]
 	oAnaSBK:SetArray(aAnaSBK)
 	oAnaSBK:bLine:={ ||{aAnaSBK[oAnaSBK:nAT,1],aAnaSBK[oAnaSBK:nAT,2],aAnaSBK[oAnaSBK:nAT,3]}}
 	oAnaSBK:Refresh()
@@ -460,18 +460,18 @@ User Function MLESTC01()
 	@ 001,320 BUTTON "Alterar no SDA"                  SIZE 45,10 ACTION (fAjustSDA("SDA"))           PIXEL OF oFolder:aDialogs[8]
 	@ 001,420 BUTTON "Processar"                       SIZE 30,10 ACTION (Processa({||fDetaSDA(0),fDetaDASB8(0)})) PIXEL OF oFolder:aDialogs[8]
 	@ 010,005 LISTBOX oDetDASDA Var cModelo FIELDS HEADER;
-	"Data" ,;
-	"Lote" ,;
-	"A Classificar" ,;
-	"Saldo" ,;
-	"Qtde.Original" ,;
-	"Num.Seq." ,;
-	"Origem" ,;
-	"Documento" ,;
-	"Serie" ,;
-	"Clie.For" ,;
-	"Loja" ,;
-	"Status" FIELDSIZES 30,40,40,40,40,30,25,32,20,30,20,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[8]
+		"Data" ,;
+		"Lote" ,;
+		"A Classificar" ,;
+		"Saldo" ,;
+		"Qtde.Original" ,;
+		"Num.Seq." ,;
+		"Origem" ,;
+		"Documento" ,;
+		"Serie" ,;
+		"Clie.For" ,;
+		"Loja" ,;
+		"Status" FIELDSIZES 30,40,40,40,40,30,25,32,20,30,20,35 SIZE 467,110 ON DBLCLICK () PIXEL OF oFolder:aDialogs[8]
 	oDetDASDA:SetArray(aDetDASDA)
 	oDetDASDA:bLine:={ ||{aDetDASDA[oDetDASDA:nAT,1],aDetDASDA[oDetDASDA:nAT,2],aDetDASDA[oDetDASDA:nAT,3],aDetDASDA[oDetDASDA:nAT,4],aDetDASDA[oDetDASDA:nAT,5],aDetDASDA[oDetDASDA:nAT,6],aDetDASDA[oDetDASDA:nAT,7],aDetDASDA[oDetDASDA:nAT,8],aDetDASDA[oDetDASDA:nAT,9],aDetDASDA[oDetDASDA:nAT,10],aDetDASDA[oDetDASDA:nAT,11],aDetDASDA[oDetDASDA:nAT,12]}}
 	oDetDASDA:Refresh()
@@ -480,17 +480,17 @@ User Function MLESTC01()
 	@ 123,005 SAY "SB8"            SIZE 200,50                              PIXEL OF oFolder:aDialogs[8] FONT oBold
 	@ 121,420 BUTTON "Alterar"     SIZE 30,10 ACTION (fAjustDAB8("DAxB8"))  PIXEL OF oFolder:aDialogs[8]
 	@ 130,005 LISTBOX oDetDASB8 Var cDet02B8BK FIELDS HEADER;
-	"Data" ,;
-	"Lote" ,;
-	"Num.Lote" ,;
-	"A Classificar" ,;
-	"Qtde.Original" ,;
-	"Origem" ,;
-	"Documento" ,;
-	"Serie" ,;
-	"Clie.For" ,;
-	"Loja" ,;
-	"Status" FIELDSIZES 30,40,30,40,40,25,32,20,30,20,35  SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[8]
+		"Data" ,;
+		"Lote" ,;
+		"Num.Lote" ,;
+		"A Classificar" ,;
+		"Qtde.Original" ,;
+		"Origem" ,;
+		"Documento" ,;
+		"Serie" ,;
+		"Clie.For" ,;
+		"Loja" ,;
+		"Status" FIELDSIZES 30,40,30,40,40,25,32,20,30,20,35  SIZE 467,095 ON DBLCLICK () PIXEL OF oFolder:aDialogs[8]
 	oDetDASB8:SetArray(aDetDASB8)
 	oDetDASB8:bLine:={ ||{aDetDASB8[oDetDASB8:nAT,1],aDetDASB8[oDetDASB8:nAT,2],aDetDASB8[oDetDASB8:nAT,3],aDetDASB8[oDetDASB8:nAT,4],aDetDASB8[oDetDASB8:nAT,5],aDetDASB8[oDetDASB8:nAT,6],aDetDASB8[oDetDASB8:nAT,7],aDetDASB8[oDetDASB8:nAT,8],aDetDASB8[oDetDASB8:nAT,9],aDetDASB8[oDetDASB8:nAT,10],aDetDASB8[oDetDASB8:nAT,11]}}
 	oDetDASB8:Refresh()
@@ -502,14 +502,14 @@ User Function MLESTC01()
 	@ 003,005 SAY "Saldo Final : "+Trans(nSldKarLocal,cPict) SIZE 200,50                                    PIXEL OF oFolder:aDialogs[9] FONT oBold
 	@ 001,420 BUTTON "Processar"                             SIZE 30,10 ACTION (Processa({||fKardLocal(0)})) PIXEL OF oFolder:aDialogs[9]
 	@ 010,005 LISTBOX oKarLocal Var cModelo FIELDS HEADER;
-	"Origem" ,;
-	"Data" ,;
-	"TES/TM" ,;
-	"CFO" ,;
-	"Documento" ,;
-	"Quantidade" ,;
-	"Saldo" ,;
-	"Num.Seq." FIELDSIZES 25,40,30,20,32,40,40,30 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[9]
+		"Origem" ,;
+		"Data" ,;
+		"TES/TM" ,;
+		"CFO" ,;
+		"Documento" ,;
+		"Quantidade" ,;
+		"Saldo" ,;
+		"Num.Seq." FIELDSIZES 25,40,30,20,32,40,40,30 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[9]
 	oKarLocal:SetArray(aKarLocal)
 	oKarLocal:bLine:={ ||{aKarLocal[oKarLocal:nAT,1],aKarLocal[oKarLocal:nAT,2],aKarLocal[oKarLocal:nAT,3],aKarLocal[oKarLocal:nAT,4],aKarLocal[oKarLocal:nAT,5],aKarLocal[oKarLocal:nAT,6],aKarLocal[oKarLocal:nAT,7],aKarLocal[oKarLocal:nAT,8]}}
 	oKarLocal:Refresh()
@@ -523,16 +523,16 @@ User Function MLESTC01()
 	@ 001,200 BUTTON "Pesquisa Diferença - Anterior"        SIZE 080,10 ACTION (fPesqDifLote("Ante"))                  PIXEL OF oFolder:aDialogs[10]
 	@ 001,420 BUTTON "Processar"                            SIZE 030,10 ACTION (Processa({||fDetaSB8(0),fKardLote(0)}))  PIXEL OF oFolder:aDialogs[10]
 	@ 010,005 LISTBOX oKarLote Var cModelo FIELDS HEADER;
-	"Origem" ,;
-	"Data" ,;
-	"TM" ,;
-	"Documento" ,;
-	"Lote" ,;
-	"Num.Lote" ,;
-	"Validade" ,;
-	"Quantidade" ,;
-	"Saldo" ,;
-	"Num.Seq." FIELDSIZES 25,30,15,32,40,30,30,40,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[10]
+		"Origem" ,;
+		"Data" ,;
+		"TM" ,;
+		"Documento" ,;
+		"Lote" ,;
+		"Num.Lote" ,;
+		"Validade" ,;
+		"Quantidade" ,;
+		"Saldo" ,;
+		"Num.Seq." FIELDSIZES 25,30,15,32,40,30,30,40,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[10]
 	oKarLote:bLDblClick := {|| Processa({||fPesqNumSeq("Lote")})}
 	oKarLote:SetArray(aKarLote)
 	oKarLote:bLine:={ ||{aKarLote[oKarLote:nAT,1],aKarLote[oKarLote:nAT,2],aKarLote[oKarLote:nAT,3],aKarLote[oKarLote:nAT,4],aKarLote[oKarLote:nAT,5],aKarLote[oKarLote:nAT,6],aKarLote[oKarLote:nAT,7],aKarLote[oKarLote:nAT,8],aKarLote[oKarLote:nAT,9],aKarLote[oKarLote:nAT,10]}}
@@ -547,15 +547,15 @@ User Function MLESTC01()
 	@ 001,200 BUTTON "Pesquisa Diferença - Anterior"        SIZE 080,10 ACTION (fPesqDifEnde("Ante"))                PIXEL OF oFolder:aDialogs[11]
 	@ 001,420 BUTTON "Processar"                            SIZE 030,10 ACTION (Processa({||fDetaSBF(0),fKardEnde(0)})) PIXEL OF oFolder:aDialogs[11]
 	@ 010,005 LISTBOX oKarEnde Var cModelo FIELDS HEADER;
-	"Origem" ,;
-	"Data" ,;
-	"TM" ,;
-	"Documento" ,;
-	"Localização" ,;
-	"Lote" ,;
-	"Quantidade" ,;
-	"Saldo" ,;
-	"Num.Seq." FIELDSIZES 25,30,15,32,50,40,40,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[11]
+		"Origem" ,;
+		"Data" ,;
+		"TM" ,;
+		"Documento" ,;
+		"Localização" ,;
+		"Lote" ,;
+		"Quantidade" ,;
+		"Saldo" ,;
+		"Num.Seq." FIELDSIZES 25,30,15,32,50,40,40,40,40 SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[11]
 	oKarEnde:bLDblClick := {|| Processa({||fPesqNumSeq("Ende")})}
 	oKarEnde:SetArray(aKarEnde)
 	oKarEnde:bLine:={ ||{aKarEnde[oKarEnde:nAT,1],aKarEnde[oKarEnde:nAT,2],aKarEnde[oKarEnde:nAT,3],aKarEnde[oKarEnde:nAT,4],aKarEnde[oKarEnde:nAT,5],aKarEnde[oKarEnde:nAT,6],aKarEnde[oKarEnde:nAT,7],aKarEnde[oKarEnde:nAT,8],aKarEnde[oKarEnde:nAT,9]}}
@@ -602,25 +602,25 @@ User Function MLESTC01()
 	@ 001,375 BUTTON "Processar"       SIZE 30,10 ACTION (Processa({||fNumSeq(0),fDetaSDA(0)}))             PIXEL OF oFolder:aDialogs[12]
 	@ 001,420 BUTTON "Pesquisar"       SIZE 30,10 ACTION (fPesquisa("NUMSEQ",oNumSeq))                    PIXEL OF oFolder:aDialogs[12]
 	@ 010,005 LISTBOX oNumSeq Var cModelo FIELDS HEADER;
-	"Num.Seq." ,;
-	"SD1" ,;
-	"SD2" ,;
-	"SD3_E" ,;
-	"SD3_S" ,;
-	"SD5_E" ,;
-	"SD5_S" ,;
-	"SDB_E" ,;
-	"SDB_S" ,;
-	"Origem" ,;
-	"Status" ,;
-	"Data" ,;
-	"Documento" ,;
-	"Serie" ,;
-	"Clie.Forn" ,;
-	"Loja" ,;
-	"Serviço" ,;
-	"Status Serviço" ,;
-	"Serviço Pendente"  SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[12]
+		"Num.Seq." ,;
+		"SD1" ,;
+		"SD2" ,;
+		"SD3_E" ,;
+		"SD3_S" ,;
+		"SD5_E" ,;
+		"SD5_S" ,;
+		"SDB_E" ,;
+		"SDB_S" ,;
+		"Origem" ,;
+		"Status" ,;
+		"Data" ,;
+		"Documento" ,;
+		"Serie" ,;
+		"Clie.Forn" ,;
+		"Loja" ,;
+		"Serviço" ,;
+		"Status Serviço" ,;
+		"Serviço Pendente"  SIZE 467,215 ON DBLCLICK () PIXEL OF oFolder:aDialogs[12]
 	oNumSeq:bLDblClick := {|| Processa({||fPesqKarEnd()})}
 	oNumSeq:SetArray(aNumSeq)
 	oNumSeq:bLine:={ ||{aNumSeq[oNumSeq:nAT,1],aNumSeq[oNumSeq:nAT,2],aNumSeq[oNumSeq:nAT,3],aNumSeq[oNumSeq:nAT,4],aNumSeq[oNumSeq:nAT,5],aNumSeq[oNumSeq:nAT,6],aNumSeq[oNumSeq:nAT,7],aNumSeq[oNumSeq:nAT,8],aNumSeq[oNumSeq:nAT,9],aNumSeq[oNumSeq:nAT,10],aNumSeq[oNumSeq:nAT,11],aNumSeq[oNumSeq:nAT,12],aNumSeq[oNumSeq:nAT,13],aNumSeq[oNumSeq:nAT,14],aNumSeq[oNumSeq:nAT,15],aNumSeq[oNumSeq:nAT,16],aNumSeq[oNumSeq:nAT,17],aNumSeq[oNumSeq:nAT,18],aNumSeq[oNumSeq:nAT,19]}}
@@ -780,7 +780,7 @@ Static Function fProcessa()
 	Endif
 
 	Do Case
-		Case SB1->B1_LOCALIZ == "S" .AND. SB1->B1_RASTRO == "L"
+	Case SB1->B1_LOCALIZ == "S" .AND. SB1->B1_RASTRO == "L"
 		IF !Empty(cMensBJBK) .And. nSBK < nSBJ  .AND. nSD5 == nSDB .AND. nSB8 == nSBF
 			cMensBJBK := ""
 			cMensagem := "OK"
@@ -797,7 +797,7 @@ Static Function fProcessa()
 		IF nSBJ = 0 .AND.  nSBK = 0 .AND. nKAR = nSB8 .AND. nKAR = nSD5 .AND. nKAR = nSDB .AND. nKAR = nSBF .AND. nKAR = nSB2 .AND. nSB8 = nSD5 .AND. nSBF = nSDB .AND. nSB8 = nSBF .AND. nSB2 = nSB8 .AND. nSB2 = nSBF
 			cMensagem := "OK"
 		Endif
-		Case SB1->B1_LOCALIZ == "S"
+	Case SB1->B1_LOCALIZ == "S"
 		IF nKAR <> nSDB .OR. nKAR <> nSBF .OR. nKAR <> nSB2 .OR. nSBF <> nSDB .OR. nSB2 <> nSBF
 			cMensagem := "DIVERGENCIA"
 		Endif
@@ -807,7 +807,7 @@ Static Function fProcessa()
 		IF nSBK = 0 .AND. nKAR = nSDB .AND. nKAR = nSBF .AND. nKAR = nSB2 .AND. nSBF = nSDB .AND. nSB2 = nSBF
 			cMensagem := "OK"
 		Endif
-		Case SB1->B1_RASTRO == "L"
+	Case SB1->B1_RASTRO == "L"
 		IF nKAR <> nSB8 .OR. nKAR <> nSD5 .OR. nKAR <> nSB2 .OR. nSB8 <> nSD5 .OR. nSB2 <> nSB8
 			cMensagem := "DIVERGENCIA"
 		Endif
@@ -817,7 +817,7 @@ Static Function fProcessa()
 		IF nSBJ = 0 .AND. nKAR = nSB8 .AND. nKAR = nSD5 .AND. nKAR = nSB2 .AND. nSB8 = nSD5 .AND. nSB2 = nSB8
 			cMensagem := "OK"
 		Endif
-		OtherWise
+	OtherWise
 		IF nKAR <> nSB2
 			cMensagem := "DIVERGENCIA"
 		Endif
@@ -1985,7 +1985,7 @@ Static Function fDetaSDA(nPosAT)
 		Endif
 		IF !Empty(cMensNumSeq)
 			IF nKAR = nSD5 .AND. nKAR = nSDB .AND. nSD5 = nSDB .AND.;
-			aNumSeq[I,2] = 0 .AND. aNumSeq[I,3] = 0 .AND. aNumSeq[I,4] = 0 .AND. aNumSeq[I,5] = 0 .AND. aNumSeq[I,6] = 0 .AND. aNumSeq[I,7] = 0
+					aNumSeq[I,2] = 0 .AND. aNumSeq[I,3] = 0 .AND. aNumSeq[I,4] = 0 .AND. aNumSeq[I,5] = 0 .AND. aNumSeq[I,6] = 0 .AND. aNumSeq[I,7] = 0
 				aNumSeq[I,11] := "OK"
 				cMensNumSeq   := ""
 			Endif
@@ -2235,13 +2235,13 @@ Static Function fKardLote(nPosAT)
 
 	For I:= 1 To Len(aKarLote)
 		Do Case
-			Case aKarLote[I,1] == "SBJ"
+		Case aKarLote[I,1] == "SBJ"
 			nSaldo        := aKarLote[I,8]
 			aKarLote[I,9] := nSaldo
-			Case aKarLote[I,1] == "SD5"
+		Case aKarLote[I,1] == "SD5"
 			nSaldo        += IF(aKarLote[I,3] <= "500" .OR. Substr(aKarLote[I,3],1,2) $ 'DE/PR/MA',aKarLote[I,8],aKarLote[I,8]*-1)
 			aKarLote[I,9] := nSaldo
-			Case aKarLote[I,1] == "SALDO"
+		Case aKarLote[I,1] == "SALDO"
 			aKarLote[I,9] := nSaldo
 			nSldKarLote   += nSaldo
 			nSD5          += nSaldo
@@ -2332,13 +2332,13 @@ Static Function fKardEnde(nPosAT)
 
 	For I:= 1 To Len(aKarEnde)
 		Do Case
-			Case aKarEnde[I,1] == "SBK"
+		Case aKarEnde[I,1] == "SBK"
 			nSaldo        := aKarEnde[I,7]
 			aKarEnde[I,8] := nSaldo
-			Case aKarEnde[I,1] == "SDB"
+		Case aKarEnde[I,1] == "SDB"
 			nSaldo        += IF(aKarEnde[I,3] <= "500" .OR. Substr(aKarEnde[I,3],1,2) $ 'DE/PR/MA',aKarEnde[I,7],aKarEnde[I,7]*-1)
 			aKarEnde[I,8] := nSaldo
-			Case aKarEnde[I,1] == "SALDO"
+		Case aKarEnde[I,1] == "SALDO"
 			aKarEnde[I,8] := nSaldo
 			nSldKarEnde   += nSaldo
 			nSDB          += nSaldo
@@ -2575,10 +2575,10 @@ Static Function fNumSeq()
 	TCSETFIELD( "QryTRB","D1_DTDIGIT","D")
 	While !Eof()
 		Do Case
-			Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "1"; cStServ := "A Executar"
-			Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "2"; cStServ := "Interrompido"
-			Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "3"; cStServ := "Ja Executado"
-			OtherWise;                                              cStServ := Space(1)
+		Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "1"; cStServ := "A Executar"
+		Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "2"; cStServ := "Interrompido"
+		Case !Empty(QryTRB->SERVIC) .AND. QryTRB->STSERV = "3"; cStServ := "Ja Executado"
+		OtherWise;                                              cStServ := Space(1)
 		EndCase
 		AAdd(aNumSeq,{QryTRB->NUMSEQ,QryTRB->QUANT,0 ,0   ,0   ,0   ,0   ,0   ,0   ,"SD1","OK",QryTRB->D1_DTDIGIT,QryTRB->D1_DOC,QryTRB->D1_SERIE,QryTRB->D1_FORNECE,QryTRB->D1_LOJA,QryTRB->SERVIC,cStServ,Space(01)})
 		//                           D1           ,D2,D3_E,D3_S,D5_E,D5_S,DB_E,DB_S
@@ -2612,10 +2612,10 @@ Static Function fNumSeq()
 	TCSETFIELD( "QryTRB","D3_EMISSAO","D")
 	While !Eof()
 		Do Case
-			Case !Empty(D3_SERVIC) .AND. D3_STSERV = "1"; cStServ := "A Executar"
-			Case !Empty(D3_SERVIC) .AND. D3_STSERV = "2"; cStServ := "Interrompido"
-			Case !Empty(D3_SERVIC) .AND. D3_STSERV = "3"; cStServ := "Ja Executado"
-			OtherWise;                                    cStServ := Space(1)
+		Case !Empty(D3_SERVIC) .AND. D3_STSERV = "1"; cStServ := "A Executar"
+		Case !Empty(D3_SERVIC) .AND. D3_STSERV = "2"; cStServ := "Interrompido"
+		Case !Empty(D3_SERVIC) .AND. D3_STSERV = "3"; cStServ := "Ja Executado"
+		OtherWise;                                    cStServ := Space(1)
 		EndCase
 		nPos := Ascan(aNumSeq,{|x|x[1]== D3_NUMSEQ })
 		IF nPos == 0
@@ -2860,7 +2860,7 @@ Static Function fAjustSD5(cOpcao,cFolder)
 			dDtValid := CTOD("  /  /  ")
 		Endif
 		Do Case
-			Case !Empty(aNumSeq[oNumSeq:nAT][02])
+		Case !Empty(aNumSeq[oNumSeq:nAT][02])
 			DBSelectArea("SD1")
 			DBSetOrder(4) //--D1_FILIAL+D1_NUMSEQ
 			IF DBSeek(xFilial("SD1")+cNumSeq)
@@ -2872,7 +2872,7 @@ Static Function fAjustSD5(cOpcao,cFolder)
 				cLoteCtl := D1_LOTECTL
 				nQuant   := D1_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][03])
+		Case !Empty(aNumSeq[oNumSeq:nAT][03])
 			DBSelectArea("SD2")
 			DBSetOrder(4) //--D2_FILIAL+D2_NUMSEQ
 			IF DBSeek(xFilial("SD2")+cNumSeq)
@@ -2884,7 +2884,7 @@ Static Function fAjustSD5(cOpcao,cFolder)
 				cLoteCtl := D2_LOTECTL
 				nQuant   := D2_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][04]) .Or. !Empty(aNumSeq[oNumSeq:nAT][05])
+		Case !Empty(aNumSeq[oNumSeq:nAT][04]) .Or. !Empty(aNumSeq[oNumSeq:nAT][05])
 			DBSelectArea("SD3")
 			DBSetOrder(7) //--D3_FILIAL+D3_COD+D3_LOCAL+DTOS(D3_EMISSAO)+D3_NUMSEQ
 			IF DBSeek(xFilial("SD3")+cProduto+cLocal+DTOS(aNumSeq[oNumSeq:nAT][12])+cNumSeq)
@@ -2896,7 +2896,7 @@ Static Function fAjustSD5(cOpcao,cFolder)
 				cLoteCtl := D3_LOTECTL
 				nQuant   := D3_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][06]) .Or. !Empty(aNumSeq[oNumSeq:nAT][07])
+		Case !Empty(aNumSeq[oNumSeq:nAT][06]) .Or. !Empty(aNumSeq[oNumSeq:nAT][07])
 			DBSelectArea("SD5")
 			DBSetOrder(3) //-- D5_FILIAL+D5_NUMSEQ+D5_PRODUTO+D5_LOCAL+D5_LOTECTL+D5_NUMLOTE
 			IF DBSeek(xFilial("SD5")+cNumSeq)
@@ -2908,7 +2908,7 @@ Static Function fAjustSD5(cOpcao,cFolder)
 				cLoteCtl := D5_LOTECTL
 				nQuant   := D5_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][08]) .Or. !Empty(aNumSeq[oNumSeq:nAT][09])
+		Case !Empty(aNumSeq[oNumSeq:nAT][08]) .Or. !Empty(aNumSeq[oNumSeq:nAT][09])
 			DBSelectArea("SDB")
 			DBSetOrder(1) //--DB_FILIAL+DB_PRODUTO+DB_LOCAL+DB_NUMSEQ+DB_DOC+DB_SERIE+DB_CLIFOR+DB_LOJA+DB_ITEM
 			IF DBSeek(xFilial("SDB")+cProduto+cLocal+cNumSeq)
@@ -3062,7 +3062,7 @@ Static Function fAjustSDB(cOpcao,cFolder)
 			cLocaliz := DB_LOCALIZ
 		Endif
 		Do Case
-			Case !Empty(aNumSeq[oNumSeq:nAT][02])
+		Case !Empty(aNumSeq[oNumSeq:nAT][02])
 			DBSelectArea("SD1")
 			DBSetOrder(4) //--D1_FILIAL+D1_NUMSEQ
 			IF DBSeek(xFilial("SD1")+cNumSeq)
@@ -3074,7 +3074,7 @@ Static Function fAjustSDB(cOpcao,cFolder)
 				cLoteCtl := D1_LOTECTL
 				nQuant   := D1_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][03])
+		Case !Empty(aNumSeq[oNumSeq:nAT][03])
 			DBSelectArea("SD2")
 			DBSetOrder(4) //--D2_FILIAL+D2_NUMSEQ
 			IF DBSeek(xFilial("SD2")+cNumSeq)
@@ -3086,7 +3086,7 @@ Static Function fAjustSDB(cOpcao,cFolder)
 				cLoteCtl := D2_LOTECTL
 				nQuant   := D2_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][04]) .Or. !Empty(aNumSeq[oNumSeq:nAT][05])
+		Case !Empty(aNumSeq[oNumSeq:nAT][04]) .Or. !Empty(aNumSeq[oNumSeq:nAT][05])
 			DBSelectArea("SD3")
 			DBSetOrder(4) //--D3_FILIAL+D3_NUMSEQ+D3_CHAVE+D3_COD
 			IF DBSeek(xFilial("SD3")+cNumSeq)
@@ -3099,7 +3099,7 @@ Static Function fAjustSDB(cOpcao,cFolder)
 				nQuant   := D3_QUANT
 				cLocaliz := IIF(Empty(cLocaliz),D3_LOCALIZ,cLocaliz)
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][06]) .Or. !Empty(aNumSeq[oNumSeq:nAT][07])
+		Case !Empty(aNumSeq[oNumSeq:nAT][06]) .Or. !Empty(aNumSeq[oNumSeq:nAT][07])
 			DBSelectArea("SD5")
 			DBSetOrder(3) //-- D5_FILIAL+D5_NUMSEQ+D5_PRODUTO+D5_LOCAL+D5_LOTECTL+D5_NUMLOTE
 			IF DBSeek(xFilial("SD5")+cNumSeq)
@@ -3111,7 +3111,7 @@ Static Function fAjustSDB(cOpcao,cFolder)
 				cLoteCtl := D5_LOTECTL
 				nQuant   := D5_QUANT
 			Endif
-			Case !Empty(aNumSeq[oNumSeq:nAT][08]) .Or. !Empty(aNumSeq[oNumSeq:nAT][09])
+		Case !Empty(aNumSeq[oNumSeq:nAT][08]) .Or. !Empty(aNumSeq[oNumSeq:nAT][09])
 			DBSelectArea("SDB")
 			DBSetOrder(1) //--DB_FILIAL+DB_PRODUTO+DB_LOCAL+DB_NUMSEQ+DB_DOC+DB_SERIE+DB_CLIFOR+DB_LOJA+DB_ITEM
 			IF DBSeek(xFilial("SDB")+cProduto+cLocal+cNumSeq)
@@ -3292,10 +3292,10 @@ Static Function fAjustSBK(cOpcao)
 	@ 020,043 MSGET oVar   VAR cLoteCtl Picture "@!"        SIZE 040,10 PIXEL OF oDlgSBK
 	@ 039,005 SAY "Quantidade"                              SIZE 040,10 PIXEL OF oDlgSBK FONT oBold
 	@ 035,043 MSGET oVar   VAR nQuant   Picture cPict       SIZE 050,10 PIXEL OF oDlgSBK
-	
+
 	@ 054,005 SAY "Quant.2UM"                               SIZE 040,10 PIXEL OF oDlgSBK FONT oBold
 	@ 050,043 MSGET oVar   VAR nQuant2UM   Picture cPict2UM SIZE 050,10 PIXEL OF oDlgSBK
-	
+
 	//fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTipoMov,cNumLote,cSerie,cCliFor,cLoja)
 	@ 075,050 BUTTON "&Confirmar" SIZE 30,14 PIXEL ACTION (fAjusta(cOpcao,cLoteCtl,Nil ,Nil  ,nQuant,cEndereco,,,,,,,,,nQuant2UM),oDlgSBK:End())
 	@ 075,090 BUTTON "&Sair"      SIZE 30,14 PIXEL ACTION oDlgSBK:End()
@@ -3313,7 +3313,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 	Local aArea  := GetArea()
 	Default	nQuant2UM	:= ConvUM(cProduto,nQuant,0,2)
 	Do Case
-		Case cOpcao == "SALDO_SB2"  // Saldo do SB2
+	Case cOpcao == "SALDO_SB2"  // Saldo do SB2
 		DBSelectArea("SB2")
 		DBSetOrder(1) //B2_FILIAL+B2_COD+B2_LOCAL
 		IF DBSeek(xFilial("SB2")+cProduto+cLocal)
@@ -3323,7 +3323,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			MsUnlock()
 			nSB2 := SB2->B2_QATU
 		Endif
-		Case cOpcao == "CLASS_SB2"  // Saldo A Classificar do SB2
+	Case cOpcao == "CLASS_SB2"  // Saldo A Classificar do SB2
 		DBSelectArea("SB2")
 		DBSetOrder(1) //B2_FILIAL+B2_COD+B2_LOCAL
 		IF DBSeek(xFilial("SB2")+cProduto+cLocal)
@@ -3332,7 +3332,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			MsUnlock()
 			nDASB2 := SB2->B2_QACLASS
 		Endif
-		Case cOpcao == "SALDO_SB9"  // Saldo do SB9
+	Case cOpcao == "SALDO_SB9"  // Saldo do SB9
 		DBSelectArea("SB9")
 		DBSetOrder(1) //B9_FILIAL+B9_COD+B9_LOCAL+DTOS(B9_DATA)
 		IF DBSeek(xFilial("SB9")+cProduto+cLocal+DTOS(dUltFech))
@@ -3342,7 +3342,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			MsUnlock()
 			nSB9 := SB9->B9_QINI
 		Endif
-		Case cOpcao == "DAxB8" // Altera Saldo a Classificar
+	Case cOpcao == "DAxB8" // Altera Saldo a Classificar
 		IF !Empty(aDetDASB8[oDetDASB8:nAT][12])
 			DBSelectArea("SB8")
 			DBGoto(aDetDASB8[oDetDASB8:nAT][12])
@@ -3353,7 +3353,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao == "SDA"   // Altera Saldo a Classificar no SDA
+	Case cOpcao == "SDA"   // Altera Saldo a Classificar no SDA
 		IF !Empty(aDetDASDA[oDetDASDA:nAT][13])
 			DBSelectArea("SDA")
 			DBGoto(aDetDASDA[oDetDASDA:nAT][13])
@@ -3364,7 +3364,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao == "B8_I"  // Inclusao
+	Case cOpcao == "B8_I"  // Inclusao
 		cLoteFor  := Nil
 		cSerie    := Nil
 		cCliFor   := Nil
@@ -3376,7 +3376,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		cNumSeq   := Nil
 		dDtValid  := Nil
 		fMovto(.T.,.F.,cProduto,cLocal,cLoteCtl,cNumLote,cLoteFor,cCliFor,cLoja,cTm,cOrigLan,cChave,cNumSeq,cDoc,cSerie,cOp,nQuant,nQuant2UM,dData,dDtValid)
-		Case cOpcao == "B8_A" // Alteracao
+	Case cOpcao == "B8_A" // Alteracao
 		DBSelectArea("SB8")
 		DBSetOrder(3) // B8_FILIAL+B8_PRODUTO+B8_LOCAL+B8_LOTECTL+B8_NUMLOTE+DTOS(B8_DTVALID)
 		IF DBSeek(xFilial("SB8")+cProduto+cLocal+cLoteCtl+cNumLote+DTOS(aDetSB8[oDetSB8:nAT][4]))
@@ -3385,7 +3385,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			SB8->B8_SALDO2 := nQuant2UM //ConvUM(cProduto,nQuant,0,2) // 2UM
 			MsUnlock()
 		Endif
-		Case cOpcao == "B8_E" // Exclusao
+	Case cOpcao == "B8_E" // Exclusao
 		dDtValid  := aDetSB8[oDetSB8:nAT][4]
 		DBSelectArea("SB8")
 		DBSetOrder(3) // B8_FILIAL+B8_PRODUTO+B8_LOCAL+B8_LOTECTL+B8_NUMLOTE+DTOS(B8_DTVALID)
@@ -3394,7 +3394,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			DBDelete()
 			MsUnlock()
 		Endif
-		Case cOpcao $ "D5_I" // Inclusao
+	Case cOpcao $ "D5_I" // Inclusao
 		cLoteFor  := Nil
 		cOrigLan  := "MI"
 		cChave    := Nil
@@ -3408,7 +3408,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			cTm := "999"
 			fMovto(.F.,.T.,cProduto,cLocal,cLoteCtl,cNumLote,cLoteFor,cCliFor,cLoja,cTm,cOrigLan,cChave,cNumSeq,cDoc,cSerie,cOp,nQuant,nQuant2UM,dData,dDtValid)
 		Endif
-		Case cOpcao $ "D5_A" // Alterar
+	Case cOpcao $ "D5_A" // Alterar
 		IF !Empty(aDetSD5[oDetSD5:nAT][14])
 			DBSelectArea("SD5")
 			DBGoto(aDetSD5[oDetSD5:nAT][14])
@@ -3419,7 +3419,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "D5_E" // Excluir
+	Case cOpcao $ "D5_E" // Excluir
 		IF !Empty(aDetSD5[oDetSD5:nAT][14])
 			DBSelectArea("SD5")
 			DBGoto(aDetSD5[oDetSD5:nAT][14])
@@ -3429,7 +3429,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "D5+B8_I" // Inclusao
+	Case cOpcao $ "D5+B8_I" // Inclusao
 		cLoteFor  := Nil
 		cOrigLan  := "MI"
 		cChave    := Nil
@@ -3437,7 +3437,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		nQuant2UM := Nil
 		cTm       := "499"
 		fMovto(.T.,.T.,cProduto,cLocal,cLoteCtl,cNumLote,cLoteFor,cCliFor,cLoja,cTm,cOrigLan,cChave,cNumSeq,cDoc,cSerie,cOp,nQuant,nQuant2UM,dData,dDtValid)
-		Case cOpcao $ "D5+B8_S" // Subtrair
+	Case cOpcao $ "D5+B8_S" // Subtrair
 		cLoteFor  := Nil
 		cOrigLan  := "MI"
 		cChave    := Nil
@@ -3454,17 +3454,17 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			MsUnlock()
 		Endif
 		fMovto(.F.,.T.,cProduto,cLocal,cLoteCtl,cNumLote,cLoteFor,cCliFor,cLoja,cTm,cOrigLan,cChave,cNumSeq,cDoc,cSerie,cOp,nQuant,nQuant2UM,dData,dDtValid)
-		Case cOpcao == "D5+B8_E" // Estornar
+	Case cOpcao == "D5+B8_E" // Estornar
 		cTipoLote := If(Rastro(cProduto),If(Rastro(cProduto,"S"),"S","L"),"N")
 		cOrigLan  := aDetSD5[oDetSD5:nAT][02]
 		EstornaSD5(cTipoLote,cProduto,cLocal,cLoteCtl,cNumLote,cNumSeq,.F.,NIL,cOrigLan,NIL,nQuant,Nil,cCliFor,cLoja,cDoc,cSerie)
-		Case cOpcao == "BF_I" // Inclusao
+	Case cOpcao == "BF_I" // Inclusao
 		cNumLote  := Nil
 		cNumSeq   := IF(Empty(cNumSeq),ProxNum(),cNumSeq)
 		nQuant2UM := nQuant2UM //ConvUM(cProduto,nQuant,0,2) // 2UM
 		cTm       := "499"
 		fGravaSBF(cTM,cProduto,cLocal,cLoteCtl,cNumLote,cNumSeq,cEndereco,nQuant,nQuant2UM)
-		Case cOpcao == "BF_A" // Alteracao
+	Case cOpcao == "BF_A" // Alteracao
 		IF !Empty(aDetSBF[oDetSBF:nAT][11])
 			DBSelectArea("SBF")
 			DBGoto(aDetSBF[oDetSBF:nAT][11])
@@ -3478,7 +3478,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				Endif
 			Endif
 		Endif
-		Case cOpcao == "BF_E" // Exclusao
+	Case cOpcao == "BF_E" // Exclusao
 		IF !Empty(aDetSBF[oDetSBF:nAT][11])
 			DBSelectArea("SBF")
 			DBGoto(aDetSBF[oDetSBF:nAT][11])
@@ -3492,7 +3492,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				Endif
 			Endif
 		Endif
-		Case cOpcao $ "DB_I" // Inclusao
+	Case cOpcao $ "DB_I" // Inclusao
 		cNumLote  := Nil
 		cNumSeq   := IF(Empty(cNumSeq),ProxNum(),cNumSeq)
 		cNumSerie := Nil
@@ -3510,7 +3510,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			cTipo := "M"
 			CriaSDB(cProduto,cLocal,nQuant,cEndereco,cNumSerie,cDoc,cSerie,cCliFor,cLoja,cTipoNf,cOrigem,dData,cLoteCtl,cNumLote,cNumSeq,cTm,cTipo,cItem,.F.,0,nQuant2UM,0)
 		Endif
-		Case cOpcao $ "DB_A" // Alterar
+	Case cOpcao $ "DB_A" // Alterar
 		IF !Empty(aDetSDB[oDetSDB:nAT][14])
 			DBSelectArea("SDB")
 			DBGoto(aDetSDB[oDetSDB:nAT][14])
@@ -3521,7 +3521,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "DB_E" // Excluir
+	Case cOpcao $ "DB_E" // Excluir
 		IF !Empty(aDetSDB[oDetSDB:nAT][14])
 			DBSelectArea("SDB")
 			DBGoto(aDetSDB[oDetSDB:nAT][14])
@@ -3531,7 +3531,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "DB+BF_I" // Inclusao
+	Case cOpcao $ "DB+BF_I" // Inclusao
 		cNumLote  := Nil
 		cNumSerie := Nil
 		cNumSeq   := IF(Empty(cNumSeq),ProxNum(),cNumSeq)
@@ -3542,7 +3542,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		cItem     := "0001"
 		CriaSDB(cProduto,cLocal,nQuant,cEndereco,cNumSerie,cDoc,cSerie,cCliFor,cLoja,cTipoNf,cOrigem,dData,cLoteCtl,cNumLote,cNumSeq,cTm,cTipo,cItem,.F.,0,nQuant2UM,0)
 		GravaSBF('SDB')
-		Case cOpcao $ "DB+BF_S" // Subtrair
+	Case cOpcao $ "DB+BF_S" // Subtrair
 		cNumLote  := Nil
 		cNumSerie := Nil
 		cNumSeq   := IF(Empty(cNumSeq),ProxNum(),cNumSeq)
@@ -3553,7 +3553,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		cItem     := "0001"
 		CriaSDB(cProduto,cLocal,nQuant,cEndereco,cNumSerie,cDoc,cSerie,cCliFor,cLoja,cTipoNf,cOrigem,dData,cLoteCtl,cNumLote,cNumSeq,cTm,cTipo,cItem,.F.,0,nQuant2UM,0)
 		GravaSBF('SDB')
-		Case cOpcao $ "DB+BF_E" // Estorno
+	Case cOpcao $ "DB+BF_E" // Estorno
 		IF !Empty(aDetSDB[oDetSDB:nAT][14])
 			DBSelectArea("SDB")
 			DBGoto(aDetSDB[oDetSDB:nAT][14])
@@ -3575,7 +3575,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				GravaSBF('SDB')
 			Endif
 		Endif
-		Case cOpcao $ "BJ_I" // Incluir
+	Case cOpcao $ "BJ_I" // Incluir
 		dDataValid := CTOD("  /  /  ")
 		DBSelectArea("SB8")
 		DBSetOrder(3) //B8_FILIAL+B8_PRODUTO+B8_LOCAL+B8_LOTECTL+B8_NUMLOTE+DTOS(B8_DTVALID)
@@ -3599,7 +3599,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		SBJ->BJ_QINI    := nQuant
 		SBJ->BJ_QISEGUM := nQuant2UM //ConvUM(cProduto,nQuant,0,2) // 2UM
 		MsUnlock()
-		Case cOpcao $ "BJ_A" // Alterar
+	Case cOpcao $ "BJ_A" // Alterar
 		IF !Empty(aAnaSBJ[oAnaSBJ:nAT][05])
 			DBSelectArea("SBJ")
 			DBGoto(aAnaSBJ[oAnaSBJ:nAT][05])
@@ -3612,7 +3612,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "BJ_E" // Excluir
+	Case cOpcao $ "BJ_E" // Excluir
 		IF !Empty(aAnaSBJ[oAnaSBJ:nAT][05])
 			DBSelectArea("SBJ")
 			DBGoto(aAnaSBJ[oAnaSBJ:nAT][05])
@@ -3622,7 +3622,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "BK_I" // Incluir
+	Case cOpcao $ "BK_I" // Incluir
 		RecLock("SBK",.T.)
 		SBK->BK_FILIAL  := xFilial("SBK")
 		SBK->BK_COD     := cProduto
@@ -3634,7 +3634,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 		SBK->BK_QINI    := nQuant
 		SBK->BK_QISEGUM := nQuant2UM //ConvUM(cProduto,nQuant,0,2) // 2UM
 		MsUnlock()
-		Case cOpcao $ "BK_A" // Alterar
+	Case cOpcao $ "BK_A" // Alterar
 		IF !Empty(aAnaSBK[oAnaSBK:nAT][04])
 			DBSelectArea("SBK")
 			DBGoto(aAnaSBK[oAnaSBK:nAT][04])
@@ -3647,7 +3647,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "BK_E" // Excluir
+	Case cOpcao $ "BK_E" // Excluir
 		IF !Empty(aAnaSBK[oAnaSBK:nAT][04])
 			DBSelectArea("SBK")
 			DBGoto(aAnaSBK[oAnaSBK:nAT][04])
@@ -3657,10 +3657,10 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 				MsUnlock()
 			Endif
 		Endif
-		Case cOpcao $ "D5DB_A" // Alterar Movimento - NumSeq
+	Case cOpcao $ "D5DB_A" // Alterar Movimento - NumSeq
 		For I:= 1 To Len(ACols)
 			Do Case
-				Case aCols[I,1] = "SD1"
+			Case aCols[I,1] = "SD1"
 				DBSelectArea("SD1")
 				DBGoto(aCols[I,14])
 				IF !Eof()
@@ -3670,14 +3670,14 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						MsUnlock()
 					Else
 						IF aCols[I,02] <> SD1->D1_DTDIGIT .OR.;
-						aCols[I,03] <> SD1->D1_DOC     .OR.;
-						aCols[I,04] <> SD1->D1_SERIE   .OR.;
-						aCols[I,05] <> SD1->D1_FORNECE .OR.;
-						aCols[I,06] <> SD1->D1_LOJA    .OR.;
-						aCols[I,09] <> SD1->D1_LOTECTL .OR.;
-						aCols[I,10] <> SD1->D1_NUMLOTE .OR.;
-						aCols[I,12] <> SD1->D1_QUANT   .OR.;
-						aCols[I,13] <> SD1->D1_QTSEGUM
+								aCols[I,03] <> SD1->D1_DOC     .OR.;
+								aCols[I,04] <> SD1->D1_SERIE   .OR.;
+								aCols[I,05] <> SD1->D1_FORNECE .OR.;
+								aCols[I,06] <> SD1->D1_LOJA    .OR.;
+								aCols[I,09] <> SD1->D1_LOTECTL .OR.;
+								aCols[I,10] <> SD1->D1_NUMLOTE .OR.;
+								aCols[I,12] <> SD1->D1_QUANT   .OR.;
+								aCols[I,13] <> SD1->D1_QTSEGUM
 							RecLock("SD1",.F.)
 							SD1->D1_DTDIGIT := aCols[I,02]
 							SD1->D1_DOC     := aCols[I,03]
@@ -3692,7 +3692,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						Endif
 					Endif
 				Endif
-				Case aCols[I,1] = "SD2"
+			Case aCols[I,1] = "SD2"
 				DBSelectArea("SD2")
 				DBGoto(aCols[I,14])
 				IF !Eof()
@@ -3702,15 +3702,15 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						MsUnlock()
 					Else
 						IF aCols[I,02] <> D2_EMISSAO .OR.;
-						aCols[I,03] <> D2_DOC     .OR.;
-						aCols[I,04] <> D2_SERIE   .OR.;
-						aCols[I,05] <> D2_CLIENTE .OR.;
-						aCols[I,06] <> D2_LOJA    .OR.;
-						aCols[I,09] <> D2_LOTECTL .OR.;
-						aCols[I,10] <> D2_NUMLOTE .OR.;
-						aCols[I,11] <> D2_LOCALIZ .OR.;
-						aCols[I,12] <> D2_QUANT   .OR.;
-						aCols[I,13] <> D2_QTSEGUM
+								aCols[I,03] <> D2_DOC     .OR.;
+								aCols[I,04] <> D2_SERIE   .OR.;
+								aCols[I,05] <> D2_CLIENTE .OR.;
+								aCols[I,06] <> D2_LOJA    .OR.;
+								aCols[I,09] <> D2_LOTECTL .OR.;
+								aCols[I,10] <> D2_NUMLOTE .OR.;
+								aCols[I,11] <> D2_LOCALIZ .OR.;
+								aCols[I,12] <> D2_QUANT   .OR.;
+								aCols[I,13] <> D2_QTSEGUM
 							RecLock("SD2",.F.)
 							SD2->D2_EMISSAO := aCols[I,02]
 							SD2->D2_DOC     := aCols[I,03]
@@ -3726,7 +3726,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						Endif
 					Endif
 				Endif
-				Case aCols[I,1] = "SD3"
+			Case aCols[I,1] = "SD3"
 				DBSelectArea("SD3")
 				DBGoto(aCols[I,14])
 				IF !Eof()
@@ -3736,12 +3736,12 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						MsUnlock()
 					Else
 						IF aCols[I,02] <> D3_EMISSAO .OR.;
-						aCols[I,03] <> D3_DOC     .OR.;
-						aCols[I,09] <> D3_LOTECTL .OR.;
-						aCols[I,10] <> D3_NUMLOTE .OR.;
-						aCols[I,11] <> D3_LOCALIZ .OR.;
-						aCols[I,12] <> D3_QUANT   .OR.;
-						aCols[I,13] <> D3_QTSEGUM
+								aCols[I,03] <> D3_DOC     .OR.;
+								aCols[I,09] <> D3_LOTECTL .OR.;
+								aCols[I,10] <> D3_NUMLOTE .OR.;
+								aCols[I,11] <> D3_LOCALIZ .OR.;
+								aCols[I,12] <> D3_QUANT   .OR.;
+								aCols[I,13] <> D3_QTSEGUM
 							RecLock("SD3",.F.)
 							SD3->D3_EMISSAO := aCols[I,02]
 							SD3->D3_DOC     := aCols[I,03]
@@ -3754,7 +3754,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						Endif
 					Endif
 				Endif
-				Case aCols[I,1] = "SD5"
+			Case aCols[I,1] = "SD5"
 				IF !Empty(aCols[I,14])
 					DBSelectArea("SD5")
 					DBGoto(aCols[I,14])
@@ -3765,14 +3765,14 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 							MsUnlock()
 						Else
 							IF aCols[I,02] <> D5_DATA    .OR.;
-							aCols[I,03] <> D5_DOC     .OR.;
-							aCols[I,04] <> D5_SERIE   .OR.;
-							aCols[I,05] <> D5_CLIFOR  .OR.;
-							aCols[I,06] <> D5_LOJA    .OR.;
-							aCols[I,09] <> D5_LOTECTL .OR.;
-							aCols[I,10] <> D5_NUMLOTE .OR.;
-							aCols[I,12] <> D5_QUANT   .OR.;
-							aCols[I,13] <> D5_QTSEGUM
+									aCols[I,03] <> D5_DOC     .OR.;
+									aCols[I,04] <> D5_SERIE   .OR.;
+									aCols[I,05] <> D5_CLIFOR  .OR.;
+									aCols[I,06] <> D5_LOJA    .OR.;
+									aCols[I,09] <> D5_LOTECTL .OR.;
+									aCols[I,10] <> D5_NUMLOTE .OR.;
+									aCols[I,12] <> D5_QUANT   .OR.;
+									aCols[I,13] <> D5_QTSEGUM
 								RecLock("SD5",.F.)
 								SD5->D5_DATA    := aCols[I,02]
 								SD5->D5_DOC     := aCols[I,03]
@@ -3788,7 +3788,7 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 						Endif
 					Endif
 				Endif
-				Case aCols[I,1] = "SDB"
+			Case aCols[I,1] = "SDB"
 				IF !Empty(aCols[I,14])
 					DBSelectArea("SDB")
 					DBGoto(aCols[I,14])
@@ -3799,15 +3799,15 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 							MsUnlock()
 						Else
 							IF aCols[I,02] <> DB_DATA    .OR.;
-							aCols[I,03] <> DB_DOC     .OR.;
-							aCols[I,04] <> DB_SERIE   .OR.;
-							aCols[I,05] <> DB_CLIFOR  .OR.;
-							aCols[I,06] <> DB_LOJA    .OR.;
-							aCols[I,09] <> DB_LOTECTL .OR.;
-							aCols[I,10] <> DB_NUMLOTE .OR.;
-							aCols[I,11] <> DB_LOCALIZ .OR.;
-							aCols[I,12] <> DB_QUANT   .OR.;
-							aCols[I,13] <> DB_QTSEGUM
+									aCols[I,03] <> DB_DOC     .OR.;
+									aCols[I,04] <> DB_SERIE   .OR.;
+									aCols[I,05] <> DB_CLIFOR  .OR.;
+									aCols[I,06] <> DB_LOJA    .OR.;
+									aCols[I,09] <> DB_LOTECTL .OR.;
+									aCols[I,10] <> DB_NUMLOTE .OR.;
+									aCols[I,11] <> DB_LOCALIZ .OR.;
+									aCols[I,12] <> DB_QUANT   .OR.;
+									aCols[I,13] <> DB_QTSEGUM
 								RecLock("SDB",.F.)
 								SDB->DB_DATA    := aCols[I,02]
 								SDB->DB_DOC     := aCols[I,03]
@@ -3829,9 +3829,9 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 	EndCase
 
 	Do Case
-		Case Substr(cOpcao,1,2) == "B8"
+	Case Substr(cOpcao,1,2) == "B8"
 		Processa({||fDetaSB8(0)})  // Detalhe do SB8 x SD5
-		Case Substr(cOpcao,1,2) == "D5" .AND. cFolder <> "13"
+	Case Substr(cOpcao,1,2) == "D5" .AND. cFolder <> "13"
 		IF cB8xD5 = "B8=>D5"
 			Processa({||fDetaSB8(0)})   // Detalhe do SB8 x SD5
 			Processa({||fMontaSD5(0)})  // Detalhe do SB8 x SD5
@@ -3839,9 +3839,9 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			Processa({||fDetaSD5(0)})      // Detalhe do SB8 x SD5
 			Processa({||fMontaSB8(.T.,0)})  // Detalhe do SB8 x SD5
 		Endif
-		Case Substr(cOpcao,1,2) == "BF"
+	Case Substr(cOpcao,1,2) == "BF"
 		Processa({||fDetaSBF(0)})  // Detalhe do SB8 x SD5
-		Case Substr(cOpcao,1,2) == "DB" .AND. cFolder <> "13"
+	Case Substr(cOpcao,1,2) == "DB" .AND. cFolder <> "13"
 		IF cBFxDB = "BF=>DB"
 			Processa({||fDetaSBF(0)})   // Detalhe do SBF x SDB
 			Processa({||fMontaSDB(0)})  // Detalhe do SBF x SDB
@@ -3849,13 +3849,13 @@ Static Function fAjusta(cOpcao,cLoteCtl,cDoc,dData,nQuant,cEndereco,cNumSeq,cTip
 			Processa({||fDetaSDB(0)})   // Detalhe do SBF x SDB
 			Processa({||fMontaSBF(.T.,0)})  // Detalhe do SBF x SDB
 		Endif
-		Case cOpcao == "DAxB8"
+	Case cOpcao == "DAxB8"
 		Processa({||fDetaDASB8(0)})
-		Case cOpcao == "SDA"
+	Case cOpcao == "SDA"
 		Processa({||fDetaSDA(0)})
-		Case cOpcao $ "BJ_I/BJ_A/BJ_E"
+	Case cOpcao $ "BJ_I/BJ_A/BJ_E"
 		Processa({||fDetaSBJ(0)})
-		Case cOpcao $ "BK_I/BK_A/BK_E"
+	Case cOpcao $ "BK_I/BK_A/BK_E"
 		Processa({||fDetaSBK(0)})
 	EndCase
 
@@ -3909,24 +3909,24 @@ Static Function fMovto(lSB8,lSD5,cProduto,cLocal,cLoteCtl,cNumLote,cLoteFor,cCli
 		DBSelectArea("SB8")
 		RecLock("SB8",.T.)
 		Replace	B8_FILIAL  with cFilial,;
-		B8_NUMLOTE with cNumLote,;
-		B8_PRODUTO with cProduto,;
-		B8_LOCAL   with cLocal,;
-		B8_DATA    with dData,;
-		B8_DTVALID with dDtValid,;
-		B8_SALDO   with nQuant,;
-		B8_SALDO2  with nQuant2UM,;
-		B8_ORIGLAN with cOrigLan,;
-		B8_LOTEFOR with cLoteFor,;
-		B8_DOC     with cDoc,;
-		B8_SERIE   with cSerie,;
-		B8_CLIFOR  with cCliFor,;
-		B8_LOJA    with cLoja,;
-		B8_PRODUTO with cProduto,;
-		B8_QTDORI  with nQuant,;
-		B8_QTDORI2 with nQuant2UM,;
-		B8_LOTECTL with cLoteCtl,;
-		B8_POTENCI with nPotencia
+			B8_NUMLOTE with cNumLote,;
+			B8_PRODUTO with cProduto,;
+			B8_LOCAL   with cLocal,;
+			B8_DATA    with dData,;
+			B8_DTVALID with dDtValid,;
+			B8_SALDO   with nQuant,;
+			B8_SALDO2  with nQuant2UM,;
+			B8_ORIGLAN with cOrigLan,;
+			B8_LOTEFOR with cLoteFor,;
+			B8_DOC     with cDoc,;
+			B8_SERIE   with cSerie,;
+			B8_CLIFOR  with cCliFor,;
+			B8_LOJA    with cLoja,;
+			B8_PRODUTO with cProduto,;
+			B8_QTDORI  with nQuant,;
+			B8_QTDORI2 with nQuant2UM,;
+			B8_LOTECTL with cLoteCtl,;
+			B8_POTENCI with nPotencia
 		MsUnlock()
 
 		// Verifica se a data de validade pode ser utilizada
@@ -4333,32 +4333,32 @@ Static Function fPesq(cOpcao,cCampos,cSeek)
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	nAte := Len(Alltrim(cSeek))
 	Do Case
-		Case cOpcao = "SBJ"
+	Case cOpcao = "SBJ"
 		nSeek := Ascan(oAnaSBJ:AHEADERS,cCampos)
 		IF (nPos := Ascan(aAnaSBJ, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oAnaSBJ:nAT := nPos
 		Endif
-		Case cOpcao = "SBK"
+	Case cOpcao = "SBK"
 		nSeek := Ascan(oAnaSBK:AHEADERS,cCampos)
 		IF (nPos := Ascan(aAnaSBK, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oAnaSBK:nAT := nPos
 		Endif
-		Case cOpcao = "SB8"
+	Case cOpcao = "SB8"
 		nSeek := Ascan(oDetSB8:AHEADERS,cCampos)
 		IF (nPos := Ascan(aDetSB8, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oDetSB8:nAT := nPos
 		Endif
-		Case cOpcao = "SD5"
+	Case cOpcao = "SD5"
 		nSeek := Ascan(oDetSD5:AHEADERS,cCampos)
 		IF (nPos := Ascan(aDetSD5, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oDetSD5:nAT := nPos
 		Endif
-		Case cOpcao = "SBF"
+	Case cOpcao = "SBF"
 		nSeek := Ascan(oDetSBF:AHEADERS,cCampos)
 		IF (nPos := Ascan(aDetSBF, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oDetSBF:nAT := nPos
 		Endif
-		Case cOpcao = "SDB"
+	Case cOpcao = "SDB"
 		nSeek := Ascan(oDetSDB:AHEADERS,cCampos)
 		IF (nPos := Ascan(aDetSDB, { |x| Substr(Alltrim(x[nSeek]),1,nAte)  == Alltrim(cSeek) })) > 0
 			oDetSDB:nAT := nPos

@@ -14,16 +14,16 @@
 @see (http://tdn.totvs.com/display/public/mp/M410ABN+-+Cancelamento+de+pedido)
 /*/
 User Function M410ABN()
-	
+
 	Local		aAreaOld	:= GetArea()
 
 	If GetNewPar("GM_ATF3KAU",.T.)
 		sfAtuaF3k1()
-	Endif 
+	Endif
 
 	RestArea(aAreaOld)
 
-Return 
+Return
 
 
 /*/{Protheus.doc} MLF3KATU
@@ -39,20 +39,20 @@ User Function MLF3KATU()
 	Local		aAreaOld	:= GetArea()
 
 	If GetNewPar("GM_ATF3KAU",.T.)
-		
-		// SC6 precisa estar posicionado 
+
+		// SC6 precisa estar posicionado
 
 		DbSelectArea("SF4")
 		DbSetOrder(1)
 		DbSeek(xFilial("SF4") + SC6->C6_TES)
-		
+
 		sfAtuF3k2()
 
-	Endif 
+	Endif
 
 	RestArea(aAreaOld)
 
-Return 
+Return
 /*/{Protheus.doc} sfAtuaF3k1
 // Função para gravar Produtos na tabela de Ajustes de Códigos
 // Foi usado neste ponto de entrada só para fazer uma carga a partir de pedidos já encerrados.  
@@ -151,7 +151,7 @@ Static Function sfAtuF3k2()
 	Local 	cB1Origem	:= Posicione("SB1",1,xFilial("SB1")+SC6->C6_PRODUTO,"B1_ORIGEM")
 
 	// Se a CST estiver em Branco assume do TES
-	If Empty(cClasFis) .Or. Len(Alltrim(cClasFis)) <> 3 
+	If Empty(cClasFis) .Or. Len(Alltrim(cClasFis)) <> 3
 		cClasFis	:= cB1Origem + Posicione("SF4",1,xFilial("SF4") + SC6->C6_TES,"F4_SITTRIB")
 		cSitTrib	:= Substr(cClasFis,2,2)
 	Endif
@@ -214,7 +214,7 @@ Static Function sfAtuF3k2()
 
 		Endif
 
-	// SC - 0401 
+		// SC - 0401
 	ElseIf cFilAnt $ '0401' .And. (INCLUI .Or. ALTERA)
 		//DISTRIBUIDORA (0401)
 		//CFOP		CST	COD.AJUSTE
@@ -284,7 +284,7 @@ Static Function sfAtuF3k2()
 			U_WFGERAL("marcelo@centralxml.com.br","Cadastrado novo registro F3K "+ cEmpAnt+"/"+ cFilAnt,"Produto: " + cCodProd + " Cfop:" + cCfopPv + " Cód.Ajuste: " + cCodAjust + " CST: " + cClasFis + " Cód.Valor:" + cCodVlDec,"MTA410I")
 
 		Endif
-	// SC 0301 
+		// SC 0301
 	ElseIf cFilAnt $ '0301' .And. (INCLUI .Or. ALTERA)
 		//COMERCIAL (0301)
 		//CFOP				CST	COD.AJUSTE
@@ -329,7 +329,7 @@ Static Function sfAtuF3k2()
 		ElseIf Alltrim(cCfopPv) $ "5905#6905" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840004"
 			cCodVlDec	:= "0000180"
-			lGrvF3K		:= .T.		
+			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5910#6910" .And. cClasFis $ "100#200#600"
 			cCodAjust	:= "SC850065"
 			cCodVlDec	:= "0000180"
@@ -392,7 +392,7 @@ Static Function sfAtuF3k2()
 			U_WFGERAL("marcelo@centralxml.com.br","Cadastrado novo registro F3K "+ cEmpAnt+"/"+ cFilAnt,"Produto: " + cCodProd + " Cfop:" + cCfopPv + " Cód.Ajuste: " + cCodAjust + " CST: " + cClasFis + " Cód.Valor:" + cCodVlDec,"MTA410I")
 
 		Endif
-	// SC - 0101 
+		// SC - 0101
 	ElseIf cFilAnt $ '0101#0104' .And. (INCLUI .Or. ALTERA)
 		//FORTA TECH (0101)
 		//CFOP			CST	COD.AJUSTE
@@ -418,7 +418,7 @@ Static Function sfAtuF3k2()
 		//*5916/6916		50	SC840008
 		//*5912/6912		50	SC840021
 		//*5913/6913		50	SC840021
-		// 5152/6152 		51 	SC830073 
+		// 5152/6152 		51 	SC830073
 		// 6910				30  SC800003
 		// 6117				30	SC800003
 		// 6119				30	SC800003
@@ -430,7 +430,7 @@ Static Function sfAtuF3k2()
 		// 6552				40	SC810193
 		// 5557				40	SC810195
 		// 7102
-	
+
 		If Alltrim(cCfopPv) $ "5152#6152" .And. cSitTrib == "51"
 			cCodAjust	:= "SC830073"
 			cCodVlDec	:= "0000180"
@@ -439,10 +439,14 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC820028"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
+		ElseIf  Alltrim(cCfopPv) $ "5908#6908" .And. cSitTrib == "41"//Adicionado em 20/03/2026 para remessa de comodato (Luciano)
+			cCodAjust	:= "SC800006"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5905#6905" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840004"
 			cCodVlDec	:= "0000180"
-			lGrvF3K		:= .T.		
+			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5912#6912" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000180"

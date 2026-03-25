@@ -587,6 +587,11 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Private lGerChv		:= ExistFunc("SpedGerChv")
 	Private oXmlRefTri  := nil
 
+	// Customização Grupo Forta
+	Private aCodAnp		:= sfRetDescAnp()
+	Private lDesEmail	:= .T. // Desativa email no XML e duplicatas tb - afins de conter o Golpe
+	Private lDesDupl	:= .F. // Desativa geração de duplicatas no XML
+
 	If FunName() == "SPEDNFSE"
 		DEFAULT cTipo   := PARAMIXB[1]
 		DEFAULT cSerie  := PARAMIXB[3]
@@ -2583,6 +2588,13 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							if lNfCup
 								cTpCliente := "F"
 							EndIf
+// Trecho Customizado - Grupo Forta - Adição mensagem Danfe 
+							If !AllTrim(SC5->C5_ZMSGNF) $ cMensCli .And. !Empty(SC5->C5_ZMSGNF)
+								If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
+									cMensCli += " "
+								EndIf
+								cMensCli	+= Alltrim(SC5->C5_ZMSGNF)
+							Endif
 
 							If !AllTrim(SC5->C5_MENNOTA) $ cMensCli
 								If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
@@ -2756,6 +2768,14 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									RestArea(aAreaSD2)
 								EndIf
 							Endif
+// Customização Grupo Forta - Grava informação do ST anterior 
+							sfAtuIcmST((cAliasSD2)->D2_DOC/*cInDoc*/,;
+								(cAliasSD2)->D2_SERIE/*cInSerie*/,;
+								(cAliasSD2)->D2_CLIENTE/*cInCliente*/,;
+								(cAliasSD2)->D2_LOJA/*cInLoja*/,;
+								(cAliasSD2)->D2_COD/*cInProduto*/,;
+								(cAliasSD2)->D2_ITEM/*cInItem*/,;
+								(cAliasSD2)->D2_QUANT/*nInQte*/)
 
 							If SF2->F2_TPFRETE == "C"
 								cModFrete := "0"
@@ -3077,6 +3097,19 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								EndIf
 							endif
 
+							// Customização Grupo Forta
+							If !Empty ((cAliasSD2)->D2_NUMSERI)
+								cInfAdic := "Num.Serial: " + (cAliasSD2)->D2_NUMSERI + " " + cInfAdic
+							Else
+								// Posiciona no movimento da SDB para pegar o numero de série
+								DbSelectArea("SDB")
+								DbSetOrder(1) // DB_FILIAL+DB_PRODUTO+DB_LOCAL+DB_NUMSEQ+DB_DOC+DB_SERIE+DB_CLIFOR+DB_LOJA+DB_ITEM
+								If DbSeek(xFilial("SDB")+ (cAliasSD2)->D2_COD + (cAliasSD2)->D2_LOCAL + (cAliasSD2)->D2_NUMSEQ + (cAliasSD2)->D2_DOC + (cAliasSD2)->D2_SERIE)
+									cInfAdic := "Num.Serial: " + SDB->DB_NUMSERI + " " + cInfAdic
+								Endif
+							Endif
+							// Fim da Customização Grupo Forta
+
 							//Verifica fonte carga tributária
 
 							If cMvMsgTrib $ "1-3"
@@ -3145,7 +3178,6 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									EndIf
 								EndIf
 							EndIf
-
 							// Indicador de Produção em escala relevante, conforme Cláusula 23 do Convenio ICMS 52/2017
 							If AliasIndic("D3E")
 								dbSelectArea("D3E")
@@ -3184,6 +3216,10 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									nValOutr +=(cAliasSD2)->D2_VALIPI
 								EndIf
 							EndIf
+
+						// Customizão Grupo Forta - Zera o valor do Desconto para que a nota só considere o valor liquido.
+						nDesconto := 0
+						// Fim da Customização Grupo Forta						
 
 
 						/* PISST + COFINSST deixam de ir para <vOutros> ficando em <vPis> e <vCofins> - NT 2020.005 
@@ -3386,8 +3422,10 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 						endif
 							
 					
-
-						If AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
+						If SB1->(FieldPos("B1_CODSIMP")) == 0
+							aadd(aComb,{})	
+						// Trecho customizado - Adaptado para Grupo Forta
+						ElseIf AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
 							aCombMono := {}
 							aadd(aComb,{CD6->CD6_CODANP,;
 								CD6->CD6_SEFAZ,;
@@ -3434,8 +3472,36 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 												 IIf(lPOrig ,	CD6->CD6_PORIG ,0 );	// 03
 								})
 								CD6->(dbSkip())
-
 							EndDo
+							
+
+							nPosAnp	:= aScan(aCodAnp,{|x| x[1] == Alltrim(SB1->B1_CODSIMP) })
+								
+								aadd(aComb,{SB1->B1_CODSIMP,;//CD6->CD6_CODANP,;
+								"",;	//CD6->CD6_SEFAZ,;
+								(cAliasSD2)->D2_QUANT,;	//CD6->CD6_QTAMB,;
+								Iif(!SF2->F2_TIPO $ "DB",SA1->A1_EST,SA2->A2_EST),;//CD6->CD6_UFCONS,;
+								0,;	//CD6->CD6_BCCIDE,;
+								0,;	//CD6->CD6_VALIQ,;
+								0,;	//CD6->CD6_VCIDE,;
+								"",;//IIf(CD6->(FieldPos("CD6_MIXGN")) > 0,CD6->CD6_MIXGN,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_BICO")) > 0,CD6->CD6_BICO,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_BOMBA")) > 0,CD6->CD6_BOMBA,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_TANQUE")) > 0,CD6->CD6_TANQUE,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_ENCINI")) > 0,CD6->CD6_ENCINI,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_ENCFIN")) > 0,CD6->CD6_ENCFIN,"")})
+								IIf(nPosAnp > 0 ,aCodAnp[nPosAnp,2],""),;//IIf(CD6->(ColumnPos("CD6_DESANP")) > 0,CD6->CD6_DESANP,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGLP")) > 0,CD6->CD6_PGLP,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGNN")) > 0,CD6->CD6_PGNN,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGNI")) > 0,CD6->CD6_PGNI,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_VPART")) > 0,CD6->CD6_VPART,""),;
+								nBRICMSO,;
+								nICMRETO,; 
+								nBRICMSD,;
+								nICMRETD,;								
+								nAliqST,;	
+								IIf(CD6->(ColumnPos("CD6_PBIO")) > 0,CD6->CD6_PBIO,0),; // 24
+								aCombMono})	// 25 origComb})
 
 					    Elseif AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0 
 					    	aadd(aComb,{CD6->CD6_CODANP,;
@@ -4108,6 +4174,12 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 						dbSkip()
 					EndDo
 
+				/*/-----------------------------------------------------------------------
+					Destruir os objetos e arrays da classe TSSTCIntegration após o término do loop.
+					@since 11/02/2025
+					@version 12.1.2410
+				/*///-----------------------------------------------------------------------
+				DestroyTCI(@oNfTciIntg)
 
 					//Tratamento para incluir a mensagem em informacoes adicionais do Suframa
 					If !Empty(aDest[15])

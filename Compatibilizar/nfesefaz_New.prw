@@ -499,6 +499,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Local cTpNf 		:= ""
 	Local nValIcmsC 	:= 0
 	Local cNcmProd      := ""
+
 	Local lCobValida   	:= .T.
 	Local dCrtNT2025 	:= CtoD("01/09/2025")
 	local lAchouSL1		:= .F. // Indica se achou o registra da venda na SL1 (SIGALOJA)
@@ -545,7 +546,6 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 	Local oCPSTCfg		as Json
 	Local oCPCTCfg		as Json
 	Local lCstTag		:= .F.
-
 //Declaração de Arrays
 	Private aUF     	:= {}
 	Private aCSTIPI 	:= {}
@@ -1854,6 +1854,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 						cField  +=",D2_LOCAL"
 					EndIf
 					// Fim Customização Grupo Forta
+
 					cField += "%"
 
 					//////////////////////////////////////////////
@@ -2473,8 +2474,6 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								cInfAdic := ""
 								cUmDipi  := ""
 								nConvDip := 0
-							EndIF
-
 
 							//Atualiza a Unid. Medida da DIPI(cUmDipi) e o Fator de Conv. da DIPI(nConvDip) com dados da SBZ caso os parâmetro recebidos estejam vazios
 							RetInfoSBZ((cAliasSD2)->D2_COD, @cUmDipi, @nConvDip)
@@ -2588,6 +2587,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							if lNfCup
 								cTpCliente := "F"
 							EndIf
+						
 // Trecho Customizado - Grupo Forta - Adição mensagem Danfe 
 							If !AllTrim(SC5->C5_ZMSGNF) $ cMensCli .And. !Empty(SC5->C5_ZMSGNF)
 								If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "

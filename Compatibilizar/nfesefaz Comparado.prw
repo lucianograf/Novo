@@ -587,6 +587,11 @@ Private lAnpProd	:= ExistFunc("TabelaAnp")
 Private lGerChv		:= ExistFunc("SpedGerChv")
 Private oXmlRefTri  := nil
 
+// Customização Grupo Forta
+	Private aCodAnp		:= sfRetDescAnp()
+	Private lDesEmail	:= .T. // Desativa email no XML e duplicatas tb - afins de conter o Golpe
+	Private lDesDupl	:= .F. // Desativa geração de duplicatas no XML 
+
 If FunName() == "SPEDNFSE"
 	DEFAULT cTipo   := PARAMIXB[1]
 	DEFAULT cSerie  := PARAMIXB[3]
@@ -1838,6 +1843,17 @@ If cTipo == "1"
 				If SD2->(FieldPos("D2_IDTRIB"))<>0
 				   cField  +=",D2_IDTRIB"				    
 				EndIf
+// Customização Grupo Forta
+					If SD2->(FieldPos("D2_NUMSERI"))<>0
+						cField  +=",D2_NUMSERI"
+					EndIf
+					If SD2->(FieldPos("D2_NUMSEQ"))<>0
+						cField  +=",D2_NUMSEQ"
+					EndIf
+					If SD2->(FieldPos("D2_LOCAL"))<>0
+						cField  +=",D2_LOCAL"
+					EndIf
+					// Fim Customização Grupo Forta
 
 				cField += "%"
 				
@@ -1857,7 +1873,7 @@ If cTipo == "1"
 				//Verifica se existe Template DCL
 				IF cVerAmb >= "4.00" .And. (ExistTemplate("PROCMSG")) //Tratativa para Grupo de Repasse de Combustiveis
 					BeginSql Alias cAliasSD2
-							SELECT D2_FILIAL,D2_SERIE,D2_DOC,D2_CLIENTE,D2_LOJA,D2_COD,D2_TES,D2_NFORI,D2_SERIORI,D2_ITEMORI,D2_TIPO,D2_ITEM,D2_CF,
+					SELECT D2_FILIAL,D2_SERIE,D2_DOC,D2_CLIENTE,D2_LOJA,D2_COD,D2_TES,D2_NFORI,D2_SERIORI,D2_ITEMORI,D2_TIPO,D2_ITEM,D2_CF,
 							D2_QUANT,D2_TOTAL,D2_DESCON,D2_VALFRE,D2_SEGURO,D2_PEDIDO,D2_ITEMPV,D2_DESPESA,D2_VALBRUT,D2_VALISS,D2_PRUNIT,
 							D2_CLASFIS,D2_PRCVEN,D2_IDENTB6,D2_CODISS,D2_DESCZFR,D2_PREEMB,D2_DESCZFC,D2_DESCZFP,D2_LOTECTL,D2_NUMLOTE,D2_ICMSRET,D2_VALPS3,
 							D2_ORIGLAN,D2_VALCF3,D2_VALIPI,D2_VALACRS,D2_PICM,D2_PDV,D2_BRICMSO,D2_ICMRETO,D2_BRICMSD,D2_ICMRETD,D2_CSOSN,D2_VALICM,D2_EMISSAO %Exp:cField% 
@@ -2459,8 +2475,6 @@ If cTipo == "1"
                             cUmDipi  := ""    
                             nConvDip := 0      
 						EndIF
-
-
                         //Atualiza a Unid. Medida da DIPI(cUmDipi) e o Fator de Conv. da DIPI(nConvDip) com dados da SBZ caso os parâmetro recebidos estejam vazios
                         RetInfoSBZ((cAliasSD2)->D2_COD, @cUmDipi, @nConvDip)
 						
@@ -2573,6 +2587,14 @@ If cTipo == "1"
 						if lNfCup
 							cTpCliente := "F"
 						EndIf
+						
+						// Trecho Customizado - Grupo Forta - Adição mensagem Danfe 
+						If !AllTrim(SC5->C5_ZMSGNF) $ cMensCli .And. !Empty(SC5->C5_ZMSGNF)
+							If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
+								cMensCli += " "
+							EndIf
+							cMensCli	+= Alltrim(SC5->C5_ZMSGNF)
+						Endif						
 						
 						If !AllTrim(SC5->C5_MENNOTA) $ cMensCli
 							If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
@@ -2746,7 +2768,15 @@ If cTipo == "1"
 									RestArea(aAreaSD2) 								
 								EndIf
 	     				Endif 
-	     				
+						// Customização Grupo Forta - Grava informação do ST anterior 
+	     				sfAtuIcmST((cAliasSD2)->D2_DOC/*cInDoc*/,;
+									(cAliasSD2)->D2_SERIE/*cInSerie*/,;
+									(cAliasSD2)->D2_CLIENTE/*cInCliente*/,;
+									(cAliasSD2)->D2_LOJA/*cInLoja*/,;
+									(cAliasSD2)->D2_COD/*cInProduto*/,;
+									(cAliasSD2)->D2_ITEM/*cInItem*/,;
+									(cAliasSD2)->D2_QUANT/*nInQte*/)
+
 				 		If SF2->F2_TPFRETE == "C"
 							cModFrete := "0"
 						ElseIf SF2->F2_TPFRETE == "F"
@@ -3023,7 +3053,7 @@ If cTipo == "1"
 								If lFCI
 									cMsgFci	:= "Resolucao do Senado Federal núm. 13/12"
 									cInfAdic  += cMsgFci + ", Numero da FCI " + Alltrim((cAliasSD2)->D2_FCICOD) + "."
-								EndIf
+         		        EndIf
 								
 							Else
 								aadd(aFCI,{})
@@ -3067,7 +3097,20 @@ If cTipo == "1"
 							EndIf			            	            		             
 			            endif  
 			            
-			            //Verifica fonte carga tributária
+			            // Customização Grupo Forta
+					If !Empty ((cAliasSD2)->D2_NUMSERI)
+						cInfAdic := "Num.Serial: " + (cAliasSD2)->D2_NUMSERI + " " + cInfAdic
+					Else
+						// Posiciona no movimento da SDB para pegar o numero de série
+						DbSelectArea("SDB")
+						DbSetOrder(1) // DB_FILIAL+DB_PRODUTO+DB_LOCAL+DB_NUMSEQ+DB_DOC+DB_SERIE+DB_CLIFOR+DB_LOJA+DB_ITEM
+						If DbSeek(xFilial("SDB")+ (cAliasSD2)->D2_COD + (cAliasSD2)->D2_LOCAL + (cAliasSD2)->D2_NUMSEQ + (cAliasSD2)->D2_DOC + (cAliasSD2)->D2_SERIE)
+							cInfAdic := "Num.Serial: " + SDB->DB_NUMSERI + " " + cInfAdic
+						Endif
+					Endif
+					// Fim da Customização Grupo Forta
+					
+			         //Verifica fonte carga tributária
 			            	            
 			            If cMvMsgTrib $ "1-3"
 			            	If lIntegHtl //Integracao Hotelaria
@@ -3135,7 +3178,6 @@ If cTipo == "1"
 								EndIf			
 							EndIf
 						EndIf
-
 						// Indicador de Produção em escala relevante, conforme Cláusula 23 do Convenio ICMS 52/2017
 						If AliasIndic("D3E")
 							dbSelectArea("D3E")
@@ -3173,7 +3215,11 @@ If cTipo == "1"
 							Else
 								nValOutr +=(cAliasSD2)->D2_VALIPI	
 							EndIf
-						EndIf	
+						EndIf
+
+						// Customizão Grupo Forta - Zera o valor do Desconto para que a nota só considere o valor liquido.
+						nDesconto := 0
+						// Fim da Customização Grupo Forta						
 
 						
 						/* PISST + COFINSST deixam de ir para <vOutros> ficando em <vPis> e <vCofins> - NT 2020.005 
@@ -3376,10 +3422,12 @@ If cTipo == "1"
 						endif
 							
 					
-
-						If AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
+						If SB1->(FieldPos("B1_CODSIMP")) == 0
+							aadd(aComb,{})	
+						// Trecho customizado - Adaptado para Grupo Forta
+						ElseIf AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
 							aCombMono := {}
-							aadd(aComb,{CD6->CD6_CODANP,;
+							/*aadd(aComb,{CD6->CD6_CODANP,;
 								CD6->CD6_SEFAZ,;
 								CD6->CD6_QTAMB,;
 								CD6->CD6_UFCONS,;
@@ -3401,10 +3449,10 @@ If cTipo == "1"
 								nICMRETO,;
 								nBRICMSD,;
 								nICMRETD,;
-								nAliqST,;
+								nAliqST,;								
 								IIf(CD6->(ColumnPos("CD6_PBIO")) > 0,CD6->CD6_PBIO,0),; // 24
 								aCombMono;	// 25 origComb
-							})
+							})*/
 
 							dbSelectArea("CD6")
 							lIndImp := CD6->(ColumnPos("CD6_INDIMP")) > 0
@@ -3424,8 +3472,36 @@ If cTipo == "1"
 												 IIf(lPOrig ,	CD6->CD6_PORIG ,0 );	// 03
 								})
 								CD6->(dbSkip())
+							EndDo 
+							
 
-							EndDo
+							nPosAnp	:= aScan(aCodAnp,{|x| x[1] == Alltrim(SB1->B1_CODSIMP) })
+								
+								aadd(aComb,{SB1->B1_CODSIMP,;//CD6->CD6_CODANP,;
+								"",;	//CD6->CD6_SEFAZ,;
+								(cAliasSD2)->D2_QUANT,;	//CD6->CD6_QTAMB,;
+								Iif(!SF2->F2_TIPO $ "DB",SA1->A1_EST,SA2->A2_EST),;//CD6->CD6_UFCONS,;
+								0,;	//CD6->CD6_BCCIDE,;
+								0,;	//CD6->CD6_VALIQ,;
+								0,;	//CD6->CD6_VCIDE,;
+								"",;//IIf(CD6->(FieldPos("CD6_MIXGN")) > 0,CD6->CD6_MIXGN,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_BICO")) > 0,CD6->CD6_BICO,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_BOMBA")) > 0,CD6->CD6_BOMBA,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_TANQUE")) > 0,CD6->CD6_TANQUE,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_ENCINI")) > 0,CD6->CD6_ENCINI,""),;
+								"",;//IIf(CD6->(FieldPos("CD6_ENCFIN")) > 0,CD6->CD6_ENCFIN,"")})
+								IIf(nPosAnp > 0 ,aCodAnp[nPosAnp,2],""),;//IIf(CD6->(ColumnPos("CD6_DESANP")) > 0,CD6->CD6_DESANP,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGLP")) > 0,CD6->CD6_PGLP,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGNN")) > 0,CD6->CD6_PGNN,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_PGNI")) > 0,CD6->CD6_PGNI,""),;
+								"",;//IIf(CD6->(ColumnPos("CD6_VPART")) > 0,CD6->CD6_VPART,""),;
+								nBRICMSO,;
+								nICMRETO,; 
+								nBRICMSD,;
+								nICMRETD,;								
+								nAliqST,;	
+								IIf(CD6->(ColumnPos("CD6_PBIO")) > 0,CD6->CD6_PBIO,0),; // 24
+								aCombMono})	// 25 origComb})
 
 					    Elseif AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0 
 					    	aadd(aComb,{CD6->CD6_CODANP,;
@@ -4312,6 +4388,26 @@ Else
 				If lF1Motivo .AND. AllTrim(SF1->F1_ORIGLAN) == "LO" .AND. LjAnalisaLeg(73)[1] .AND. !Empty(SF1->F1_MOTIVO)
 					cMensFis += SF1->F1_MOTIVO
 				EndIf
+
+				// Customização Grupo Forta 
+				//+--------------------------------------------------------------------------------------------//
+				//| ----------------------------------------- aFill -------------------------------------------//
+				//+--------------------------------------------------------------------------------------------//
+				If !Empty(SF1->F1_HAWB)
+					cMensCli := ""
+					aRetImp  := {}
+					aRetImp  := U_UZMsgNF(SF1->F1_HAWB)
+					If ValType(aRetImp) == "A"
+						For gh := 1 To Len(aRetImp)
+							cMensCli += aRetImp[gh]
+						Next
+					EndIf
+				EndIf
+				//+--------------------------------------------------------------------------------------------//
+				//| ----------------------------------------- aFill -------------------------------------------//
+				//+--------------------------------------------------------------------------------------------//
+				//
+
 				
 				If SF1->(FieldPos("F1_FORRET"))<>0 .And. !Empty(SF1->F1_FORRET+SF1->F1_LOJARET) .And. SF1->F1_FORRET+SF1->F1_LOJARET <> SF1->F1_FORNECE+SF1->F1_LOJA
 				    dbSelectArea("SA1")
@@ -4379,6 +4475,26 @@ Else
 					cDevMerc := Alltrim(SF1->F1_DEVMERC)
 				EndIf
 				
+				// Customização Grupo Forta 
+				//+--------------------------------------------------------------------------------------------//
+				//| ----------------------------------------- aFill -------------------------------------------//
+				//+--------------------------------------------------------------------------------------------//
+				If !Empty(SF1->F1_HAWB)
+					cMensCli := ""
+					aRetImp  := {}
+					aRetImp  := U_UZMsgNF(SF1->F1_HAWB)
+					If ValType(aRetImp) == "A"
+						For gh := 1 To Len(aRetImp)
+							cMensCli += aRetImp[gh]
+						Next
+					EndIf
+				EndIf
+				//+--------------------------------------------------------------------------------------------//
+				//| ----------------------------------------- aFill -------------------------------------------//
+				//+--------------------------------------------------------------------------------------------//
+				//
+
+
 				If cDevMerc == "S"
 				
 					aadd(aDest,AllTrim(SM0->M0_CGC)) // 1
@@ -6128,7 +6244,7 @@ Else
 					// Procura algum registro na CD5 referente a nota que foi complementada
 					If MsSeek(xFilial("CD5")+(cAliasSD1)->D1_DOC+(cAliasSD1)->D1_SERIE+(cAliasSD1)->D1_FORNECE+(cAliasSD1)->D1_LOJA+(cAliasSD1)->D1_ITEM)
 							aAdd(aDI,{;
-								{"I04","NCM",SB1->B1_POSIPI},;				//1
+								{"I04","NCM",CD5->CD5_XTEC},; 				//1 ---------------------------- aFill ----------------------------------- // Customização Grupo Forta 
 								{"I15","vFrete",0},;							//2
 								{"I16","vSeg",0},;							//3
 								{"I19","nDI",Iif(!Empty(CD5->CD5_NDI),CD5->CD5_NDI,"NIHIL")},;		//4
@@ -6141,7 +6257,7 @@ Else
 								{"I27","nSeqAdi",Val(CD5->CD5_SQADIC)},;	//11
 								{"I28","cFabricante",CD5->CD5_CODFAB},;	//12
 								{"I29","vDescDI",0},;						//13
-								{"N14","pRedBC",0},;						//14
+								{"N14","pRedBC",CD5->CD5_XRED },;			//14 ---------------------------- aFill ----------------------------------- // Customização Grupo Fort 
 								{"O11","qUnid",0},;							//15
 								{"O12","vUnid",0},;							//16
 								{"P02","vBC",CD5->CD5_BCIMP},;				//17
@@ -6185,7 +6301,83 @@ Else
 					nValIrrf  += (cAliasSD1)->D1_VALIRR 
 				EndIf	
 
+				// Trecho customizado - Adaptado para Grupo Forta
 				If AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
+					aCombMono := {}
+					/*aadd(aComb,{CD6->CD6_CODANP,;
+						CD6->CD6_SEFAZ,;
+						CD6->CD6_QTAMB,;
+						CD6->CD6_UFCONS,;
+						CD6->CD6_BCCIDE,;
+						CD6->CD6_VALIQ,;
+						CD6->CD6_VCIDE,;
+						IIf(CD6->(ColumnPos("CD6_MIXGN")) > 0,CD6->CD6_MIXGN,""),;
+						IIf(CD6->(ColumnPos("CD6_BICO")) > 0,CD6->CD6_BICO,""),;
+						IIf(CD6->(ColumnPos("CD6_BOMBA")) > 0,CD6->CD6_BOMBA,""),;
+						IIf(CD6->(ColumnPos("CD6_TANQUE")) > 0,CD6->CD6_TANQUE,""),;
+						IIf(CD6->(ColumnPos("CD6_ENCINI")) > 0,CD6->CD6_ENCINI,""),;
+						IIf(CD6->(ColumnPos("CD6_ENCFIN")) > 0,CD6->CD6_ENCFIN,""),;
+						IIf(CD6->(ColumnPos("CD6_DESANP")) > 0,CD6->CD6_DESANP,""),;
+						IIf(CD6->(ColumnPos("CD6_PGLP")) > 0,CD6->CD6_PGLP,""),;
+						IIf(CD6->(ColumnPos("CD6_PGNN")) > 0,CD6->CD6_PGNN,""),;
+						IIf(CD6->(ColumnPos("CD6_PGNI")) > 0,CD6->CD6_PGNI,""),;
+						IIf(CD6->(ColumnPos("CD6_VPART")) > 0,CD6->CD6_VPART,""),;
+						nBRICMSO,;
+						nICMRETO,;
+						nBRICMSD,;
+						nICMRETD,;
+						nAliqST,;								
+						IIf(CD6->(ColumnPos("CD6_PBIO")) > 0,CD6->CD6_PBIO,0),; // 24
+						aCombMono;	// 25 origComb
+					})*/
+
+					dbSelectArea("CD6")
+					lIndImp := CD6->(ColumnPos("CD6_INDIMP")) > 0
+					lUfOrig := CD6->(ColumnPos("CD6_UFORIG")) > 0
+					lPOrig	:= CD6->(ColumnPos("CD6_PORIG")) > 0
+					While !Eof() .And. xFilial("CD6") == CD6->CD6_FILIAL .And. ;
+										CD6->CD6_TPMOV == "E" .And. ;
+										(cAliasSD1)->D1_SERIE == CD6->CD6_SERIE .And.;
+										(cAliasSD1)->D1_DOC == CD6->CD6_DOC .And.;
+										(cAliasSD1)->D1_FORNECE == CD6->CD6_CLIFOR .And.;
+										(cAliasSD1)->D1_LOJA == CD6->CD6_LOJA .And.;
+										nCount == Val(CD6->CD6_ITEM)
+							aAdd(aCombMono, {IIf(lIndImp ,	CD6->CD6_INDIMP ,""),;	// 01
+										IIf(lUfOrig ,	CD6->CD6_UFORIG ,""),;	// 02
+										IIf(lPOrig	 ,	CD6->CD6_PORIG  ,0 );	// 03
+						})
+						CD6->(dbSkip())
+					EndDo
+						
+					nPosAnp	:= aScan(aCodAnp,{|x| x[1] == Alltrim(SB1->B1_CODSIMP) })
+							
+						aadd(aComb,{SB1->B1_CODSIMP,;//CD6->CD6_CODANP,;
+						"",;	//CD6->CD6_SEFAZ,;
+						(cAliasSD1)->D1_QUANT,;	//CD6->CD6_QTAMB,;
+						Iif(SF1->F1_TIPO $ "DB",SA1->A1_EST,SA2->A2_EST),;//CD6->CD6_UFCONS,;
+						0,;	//CD6->CD6_BCCIDE,;
+						0,;	//CD6->CD6_VALIQ,;
+						0,;	//CD6->CD6_VCIDE,;
+						"",;//IIf(CD6->(FieldPos("CD6_MIXGN")) > 0,CD6->CD6_MIXGN,""),;
+						"",;//IIf(CD6->(FieldPos("CD6_BICO")) > 0,CD6->CD6_BICO,""),;
+						"",;//IIf(CD6->(FieldPos("CD6_BOMBA")) > 0,CD6->CD6_BOMBA,""),;
+						"",;//IIf(CD6->(FieldPos("CD6_TANQUE")) > 0,CD6->CD6_TANQUE,""),;
+						"",;//IIf(CD6->(FieldPos("CD6_ENCINI")) > 0,CD6->CD6_ENCINI,""),;
+						"",;//IIf(CD6->(FieldPos("CD6_ENCFIN")) > 0,CD6->CD6_ENCFIN,"")})
+						IIf(nPosAnp > 0 ,aCodAnp[nPosAnp,2],""),;//IIf(CD6->(ColumnPos("CD6_DESANP")) > 0,CD6->CD6_DESANP,""),;
+						"",;//IIf(CD6->(ColumnPos("CD6_PGLP")) > 0,CD6->CD6_PGLP,""),;
+						"",;//IIf(CD6->(ColumnPos("CD6_PGNN")) > 0,CD6->CD6_PGNN,""),;
+						"",;//IIf(CD6->(ColumnPos("CD6_PGNI")) > 0,CD6->CD6_PGNI,""),;
+						"",;//IIf(CD6->(ColumnPos("CD6_VPART")) > 0,CD6->CD6_VPART,""),;
+						nBRICMSO,;
+						nICMRETO,; 
+						nBRICMSD,;
+						nICMRETD,;								
+						nAliqST,;	
+						IIf(CD6->(ColumnPos("CD6_PBIO")) > 0,CD6->CD6_PBIO,0),; // 24
+						aCombMono})	// 25 origComb})
+
+				ElseIf AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0
 					aCombMono := {}
 					aadd(aComb,{CD6->CD6_CODANP,;
 						         CD6->CD6_SEFAZ,;
@@ -6788,8 +6980,11 @@ Else
 						aTotal[02] += 0
 					EndIf
 				Else
-					If lConfTrib
-						aTotal[02] += (cAliasSD1)->D1_CUSTO
+
+					If lConfTrib .And. !SubStr((cAliasSD1)->D1_CF,1,1) == '3' // Adicionada condição para não validar na Importação ainda. 
+						If (DKD->(ColumnPos("DKD_VALBRU"))>0)
+							aTotal[02] += GetAdvFVal("DKD","DKD_VALBRU",xFilial("DKD") + (cAliasSD1)->D1_DOC + (cAliasSD1)->D1_SERIE + (cAliasSD1)->D1_FORNECE + (cAliasSD1)->D1_LOJA + (cAliasSD1)->D1_ITEM + (cAliasSD1)->D1_EMISSAO + SFT->FT_ESPECIE,1)
+						EndIf
 					Else
 						aTotal[02] += ((cAliasSD1)->D1_TOTAL-(cAliasSD1)->D1_VALDESC+(cAliasSD1)->D1_VALFRE+(cAliasSD1)->D1_SEGURO+(cAliasSD1)->D1_DESPESA;
 									+ IIF(SD1->(ColumnPos('D1_AFRMIMP'))>0,(cAliasSD1)->D1_AFRMIMP,0);
@@ -8445,7 +8640,7 @@ If  !lIssQn
 					cString += '<pFCPST>'+ConvType(aICMSST[14],5,2)+'</pFCPST>'
 					cString += '<vFCPST>'+ConvType(aICMSST[15],15,2)+'</vFCPST>'	
 			   Endif	
-			Endif
+			Endif 
 		Endif
 		
 		If cCsosn$"500"   
@@ -8989,7 +9184,23 @@ If  !lIssQn
 			     	nVfcpant  := aProd[09]*nVfcpant
 			    EndIf
 			endif
-				
+			// Customização Grupo Forta 
+			If Empty(cUltAqui)
+				//sfSPEDRastro(aProd[02],@nBaseST60,@nValST60,aProd[09],@nAliqST60,@nBfcpant,@nAfcpant,@nVfcpant)
+				// Posiciona no último elemento aProd pois sempre terá o código do produto da nota
+				sfSPEDRastro(aXProdAux[nItProd,1],@nBaseST60,@nValST60,aProd[09],@nAliqST60,@nBfcpant,@nAfcpant,@nVfcpant,@nVlIcmSubst)
+				If lCalcMed
+					nBaseST60 	:= Round(aProd[09]*nBaseST60 , 2 )
+					nValST60  	:= Round(aProd[09]*nValST60 , 2 )
+					nBfcpant 	:= Round(aProd[09]*nBfcpant , 2 )
+					nVfcpant  	:= Round(aProd[09]*nVfcpant , 2 )
+					nVlIcmSubst := Round(aProd[09]*nVlIcmSubst,2)
+					nAlqIcm 	:= nAliqST60
+				Endif
+			Else
+				SPEDRastro2(aProd[20],aProd[19],aProd[Len(aProd)],@nBaseIcm,@nValICM,,,lCalcMed,@nAlqICM,,,,,,,,,,,@nBfcpant,@nAfcpant,@nVfcpant)
+			Endif
+
 			If nBaseIcm > 0 .and. nValICM > 0	.and. nAlqICM > 0
 		   		If Len(cMensFis) > 0 .And. SubStr(cMensFis, Len(cMensFis), 1) <> " "
 					cMensFis += " "
@@ -9702,7 +9913,7 @@ If Len(aProd[53]) > 0
 
 EndIf
 
-cString += '<vItem>' +ConvType(nTotalItem)+ '</vItem>'
+//cString += '<vItem>' +ConvType(nTotalItem)+ '</vItem>'
 //Aguardando definição dos campos
 // cString += gDFeReferenciado(cNFe,ConvType(aProd[01]))
 
@@ -12090,7 +12301,12 @@ Do Case
   		cTPNota:= "2" 
  	Case (SubStr(SM0->M0_CODMUN,1,2)=='31' .And. SF4->F4_AJUSTE == "S" .And. (aNota[5]) $ "N" )
  		cTPNota:= "3"
-	// tratativa para nota de estorno tipo N, para nota do tipo B(beneficiamento)
+ // Customização Grupo Forta - Se for SC e o TES estiver configurada para Ajuste e tipo de nota Normal 
+	Case (SubStr(SM0->M0_CODMUN,1,2)=='42' .And. SF4->F4_AJUSTE == "S" .And. (aNota[5]) $ "N" )
+ 		cTPNota:= "3"
+ 		MsgInfo("Finalidade de nota ajustada para tipo 3 - Ajuste")
+ // Fim Customização Grupo Forta		
+ 	// tratativa para nota de estorno tipo N, para nota do tipo B(beneficiamento)
 	Case ((aNota[5]) $ "I-D-C-B" .And. SF4->F4_AJUSTE == "S") .or.;
 	 ( len(aNfVinc)>=1 .and. len(aNfVinc[1]) > 9 .and. aNfVinc[1][10] == "B"  .and. aNota[5] == "N"  .and. SF4->F4_PODER3 == "D"  .and. SF4->F4_AJUSTE == "S") .or.;
 	 ( len(aNfVCDD)>=1 .and. len(aNfVCDD[1]) > 9 .and. aNfVCDD[1][10] == "D"  .and. aNota[5] == "N"  .and. SF4->F4_AJUSTE == "S") //Verifico se a referencia na CDD, se essa referencia e uma devolução , se a nota transmitida e normal e se a TES e ajuste.
@@ -13896,3 +14112,1255 @@ Retorna o grupo
 	cString += '</DFeReferenciado>'
 
 return cString*/
+
+
+
+// Customização Grupo Forta 	
+	
+/*/{Protheus.doc} sfRetDescAnp
+Função que retorna array com identificação da descrição ANP dos produtos 
+@type function
+@version  
+@author Lauschner Consulting - Marcelo Alberto Lauschner
+@since 07/09/2025
+@return variant, return_description
+/*/
+Static Function sfRetDescAnp()
+	Local	aRetCodAnp		:= {}
+	
+	Aadd(aRetCodAnp,{'110203073','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ABO 3'})
+	Aadd(aRetCodAnp,{'110204001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ABOOZAR'})
+	Aadd(aRetCodAnp,{'110204002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ABU ASAFAH'})
+	Aadd(aRetCodAnp,{'140101027','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÁCIDO GRAXO DE ÓLEO DE PALMA / DENDÊ'})
+	Aadd(aRetCodAnp,{'140101026','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÁCIDO GRAXO DE ÓLEO DE SOJA'})
+	Aadd(aRetCodAnp,{'850101002','COMBUSTÍVEIS ALTERNATIVOS QUEROSENE ALTERNATIVO QUEROSENE ALTERNATIVO QUEROSENE DE AVIAÇÃO ALTERNATIVO Ácidos graxos e ésteres hidroprocessados (SPK-HEFA)'})
+	Aadd(aRetCodAnp,{'740101005','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS ADITIVOS PARA BIODIESEL'})
+	Aadd(aRetCodAnp,{'740101004','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS ADITIVOS PARA ETANOL HIDRATADO'})
+	Aadd(aRetCodAnp,{'740101001','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS ADITIVOS PARA GASOLINA'})
+	Aadd(aRetCodAnp,{'740101006','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS ADITIVOS PARA LUBRIFICANTES'})
+	Aadd(aRetCodAnp,{'740101002','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS ADITIVOS PARA ÓLEO DIESEL'})
+	Aadd(aRetCodAnp,{'110203083','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA AGBAMI'})
+	Aadd(aRetCodAnp,{'910101001','PRODUTOS INORGÂNICOS ÁGUA ÁGUA ÁGUA ÁGUA'})
+	Aadd(aRetCodAnp,{'110103001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO ÁGUA GRANDE'})
+	Aadd(aRetCodAnp,{'330101001','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS AGUARRÁS MINERAL'})
+	Aadd(aRetCodAnp,{'110203091','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA AKPO'})
+	Aadd(aRetCodAnp,{'120204001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO AL KHAYMAH'})
+	Aadd(aRetCodAnp,{'110106001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE ALAGOANO'})
+	Aadd(aRetCodAnp,{'120206001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA EUROPA E EX-URSS ALBA FIELD'})
+	Aadd(aRetCodAnp,{'110101001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ALBACORA'})
+	Aadd(aRetCodAnp,{'110101042','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ALBACORA LESTE'})
+	Aadd(aRetCodAnp,{'810201001','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL OUTROS ALCOÓIS OUTROS ALCOÓIS ÁLCOOL METÍLICO'})
+	Aadd(aRetCodAnp,{'110201067','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ALEN CONDENSATE'})
+	Aadd(aRetCodAnp,{'110204003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ALIF'})
+	Aadd(aRetCodAnp,{'330201005','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS ALQUILBENZENO AB10'})
+	Aadd(aRetCodAnp,{'330201006','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS ALQUILBENZENO AB11'})
+	Aadd(aRetCodAnp,{'330201004','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS ALQUILBENZENO AB9'})
+	Aadd(aRetCodAnp,{'110105001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR ALTO DO RODRIGUES'})
+	Aadd(aRetCodAnp,{'110203072','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA AMENAN BLEND'})
+	Aadd(aRetCodAnp,{'110203001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA AMNA'})
+	Aadd(aRetCodAnp,{'110201001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ANACO WAX'})
+	Aadd(aRetCodAnp,{'110101002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ANEQUIM'})
+	Aadd(aRetCodAnp,{'110203002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ANGOLANO'})
+	Aadd(aRetCodAnp,{'120205010','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA ANOA'})
+	Aadd(aRetCodAnp,{'110203003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ANTAN'})
+	Aadd(aRetCodAnp,{'530206002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CAP MODIFICADO POR BORRACHA AP MODIFICADO POR BORRACHA DE PNEU AB22'})
+	Aadd(aRetCodAnp,{'110204004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE EXTRA LEVE'})
+	Aadd(aRetCodAnp,{'110204005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE LEVE'})
+	Aadd(aRetCodAnp,{'110204006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE MEDIO'})
+	Aadd(aRetCodAnp,{'110204007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE MEDIO BANOCO'})
+	Aadd(aRetCodAnp,{'110204008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE MEDIO ZULUF'})
+	Aadd(aRetCodAnp,{'110204009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE PESADO'})
+	Aadd(aRetCodAnp,{'110204010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE RECON'})
+	Aadd(aRetCodAnp,{'110204011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ARABE SUPER LEVE'})
+	Aadd(aRetCodAnp,{'110105027','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR ARACARI'})
+	Aadd(aRetCodAnp,{'110103003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO ARAÇÁS'})
+	Aadd(aRetCodAnp,{'110103002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO ARATU'})
+	Aadd(aRetCodAnp,{'110105002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR ARATUM'})
+	Aadd(aRetCodAnp,{'110205001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA ARDJUNA'})
+	Aadd(aRetCodAnp,{'110107009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS AREA DE FLORIM'})
+	Aadd(aRetCodAnp,{'110107013','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS AREA NORDESTE DE TUPI'})
+	Aadd(aRetCodAnp,{'110107014','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS AREA SUL DE GUARA'})
+	Aadd(aRetCodAnp,{'110107012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS AREA SUL DE TUPI'})
+	Aadd(aRetCodAnp,{'120203002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA ARGELINO'})
+	Aadd(aRetCodAnp,{'120205001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA ARUM'})
+	Aadd(aRetCodAnp,{'110203004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ARZEW'})
+	Aadd(aRetCodAnp,{'120203001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA AR-720'})
+	Aadd(aRetCodAnp,{'530102001','DERIVADOS PESADOS ASFALTOS ASFALTOS ASFALTOS NATURAIS ASFALTO NATURAL'})
+	Aadd(aRetCodAnp,{'530101002','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS ASFALTOS DILUÍDOS'})
+	Aadd(aRetCodAnp,{'530202003','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS ASFALTOS DILUÍDOS ASFALTOS DILUÍDOS CM-30'})
+	Aadd(aRetCodAnp,{'530202004','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS ASFALTOS DILUÍDOS ASFALTOS DILUÍDOS CM-70'})
+	Aadd(aRetCodAnp,{'530202002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS ASFALTOS DILUÍDOS ASFALTOS DILUÍDOS CR-250'})
+	Aadd(aRetCodAnp,{'530202001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS ASFALTOS DILUÍDOS ASFALTOS DILUÍDOS CR-70'})
+	Aadd(aRetCodAnp,{'110206023','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS ASGARD BLEND'})
+	Aadd(aRetCodAnp,{'110108001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ ATUM'})
+	Aadd(aRetCodAnp,{'110105017','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR AURI'})
+	Aadd(aRetCodAnp,{'110206019','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS AZERJ LIGHT'})
+	Aadd(aRetCodAnp,{'110205023','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BACH HO'})
+	Aadd(aRetCodAnp,{'110201002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BACHAQUERO'})
+	Aadd(aRetCodAnp,{'120202001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA AMÉRICA DO NORTE & CARIBE BADAK'})
+	Aadd(aRetCodAnp,{'110101003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BADEJO'})
+	Aadd(aRetCodAnp,{'140202001','INSUMO BRUTO RENOVAVEIS ETANOL MATÉRIA - PRIMA DE 2ª GERAÇÃO BAGAÇO OU PALHA DE CANA'})
+	Aadd(aRetCodAnp,{'110101004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BAGRE'})
+	Aadd(aRetCodAnp,{'110103004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO BAIANO BORDA NORDESTE'})
+	Aadd(aRetCodAnp,{'110103005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO BAIANO MISTURA'})
+	Aadd(aRetCodAnp,{'110101051','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BALEIA AZUL'})
+	Aadd(aRetCodAnp,{'110207010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA BALNAVES'})
+	Aadd(aRetCodAnp,{'110203097','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BAOBAB'})
+	Aadd(aRetCodAnp,{'110205037','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BARANTAI'})
+	Aadd(aRetCodAnp,{'110101005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BARRACUDA'})
+	Aadd(aRetCodAnp,{'110203096','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BARROW ISLAND'})
+	Aadd(aRetCodAnp,{'110204012','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO BASRAH LEVE'})
+	Aadd(aRetCodAnp,{'110204013','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO BASRAH MEDIO'})
+	Aadd(aRetCodAnp,{'110204014','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO BASRAH PESADO'})
+	Aadd(aRetCodAnp,{'110102001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE MUCURI BAS-60'})
+	Aadd(aRetCodAnp,{'110107007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS BAUNA'})
+	Aadd(aRetCodAnp,{'120207003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA BAYU UNDAN'})
+	Aadd(aRetCodAnp,{'110201003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BCF'})
+	Aadd(aRetCodAnp,{'110201004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BCF 22'})
+	Aadd(aRetCodAnp,{'110201005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BCF 23'})
+	Aadd(aRetCodAnp,{'110201006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BCF 24'})
+	Aadd(aRetCodAnp,{'110206001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS BEATRICE'})
+	Aadd(aRetCodAnp,{'110205002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BEKOK'})
+	Aadd(aRetCodAnp,{'110203005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BELAYM'})
+	Aadd(aRetCodAnp,{'110205003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BELIDA'})
+	Aadd(aRetCodAnp,{'330201001','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS BENZENO'})
+	Aadd(aRetCodAnp,{'110206002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS BERYL'})
+	Aadd(aRetCodAnp,{'110101006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BICUDO'})
+	Aadd(aRetCodAnp,{'110101007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BIJUPIRÁ'})
+	Aadd(aRetCodAnp,{'110101038','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BIJUPIRÁ/SALEMA'})
+	Aadd(aRetCodAnp,{'120205002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA BINTULU'})
+	Aadd(aRetCodAnp,{'820101001','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL BIODIESEL B100'})
+	Aadd(aRetCodAnp,{'820101010','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL BIODIESEL FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'140301001','INSUMO BRUTO RENOVAVEIS BIOMETANO BIOGÁS BIOGÁS'})
+	Aadd(aRetCodAnp,{'840101001','COMBUSTÍVEIS ALTERNATIVOS GASOSOS BIOMETANO BIOMETANO BIOMETANO'})
+	Aadd(aRetCodAnp,{'840101002','COMBUSTÍVEIS ALTERNATIVOS GASOSOS BIOMETANO BIOMETANO BIOMETANO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'110206003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS BLACK GASOIL CRUDE OIL'})
+	Aadd(aRetCodAnp,{'110201007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BOLIVIAN BLEND'})
+	Aadd(aRetCodAnp,{'110201008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BOLIVIANO'})
+	Aadd(aRetCodAnp,{'120201001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA AMÉRICA DO SUL BOLIVIANO'})
+	Aadd(aRetCodAnp,{'110103017','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO BOM LUGAR'})
+	Aadd(aRetCodAnp,{'110205004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BOMBAY HIGH'})
+	Aadd(aRetCodAnp,{'110203077','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BONGA'})
+	Aadd(aRetCodAnp,{'110101008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS BONITO'})
+	Aadd(aRetCodAnp,{'110203006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BONNY LEVE'})
+	Aadd(aRetCodAnp,{'110203007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BONNY MEDIO'})
+	Aadd(aRetCodAnp,{'110201009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL BOSCAN'})
+	Aadd(aRetCodAnp,{'110203008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BOURI'})
+	Aadd(aRetCodAnp,{'110203009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BRASS BLEND'})
+	Aadd(aRetCodAnp,{'110203010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BRASS RIVER'})
+	Aadd(aRetCodAnp,{'120203004','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA BREGA'})
+	Aadd(aRetCodAnp,{'110206004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS BRENT'})
+	Aadd(aRetCodAnp,{'610101009','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I BRIGHT STOCK'})
+	Aadd(aRetCodAnp,{'610801001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API YPF/ARGENTINA BRIGHT STOCK'})
+	Aadd(aRetCodAnp,{'120205003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA BRUNEI'})
+	Aadd(aRetCodAnp,{'110205005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA BRUNEI LIGHT'})
+	Aadd(aRetCodAnp,{'610811001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API REPSOL YPF/ESPANHA BS'})
+	Aadd(aRetCodAnp,{'610803003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API CEPSA LUBRIFICANTES/ESPANHA BS'})
+	Aadd(aRetCodAnp,{'610812001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA BS'})
+	Aadd(aRetCodAnp,{'610805001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API ENI SPA./ITÁLIA BS 150'})
+	Aadd(aRetCodAnp,{'610806003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA BS 2500'})
+	Aadd(aRetCodAnp,{'110203092','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA BU ATTIFEL'})
+	Aadd(aRetCodAnp,{'110204015','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO BURGAN'})
+	Aadd(aRetCodAnp,{'210202003','GASES GASES GASES LIQUEFEITOS C4 BUTADIENO'})
+	Aadd(aRetCodAnp,{'210202001','GASES GASES GASES LIQUEFEITOS C4 BUTANO'})
+	Aadd(aRetCodAnp,{'210203005','GASES GASES GASES LIQUEFEITOS GASES LIQUEFEITO DE PETRÓLEO - GLP BUTANO COMERCIAL'})
+	Aadd(aRetCodAnp,{'210202002','GASES GASES GASES LIQUEFEITOS C4 BUTANO ESPECIAL'})
+	Aadd(aRetCodAnp,{'110107010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS BUZIOS'})
+	Aadd(aRetCodAnp,{'110105018','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR BV'})
+	Aadd(aRetCodAnp,{'110203011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA CABINA/TAKULA'})
+	Aadd(aRetCodAnp,{'110203012','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA CABINDA'})
+	Aadd(aRetCodAnp,{'110101009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CABIÚNAS MISTURA'})
+	Aadd(aRetCodAnp,{'110104001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO CAÇÃO'})
+	Aadd(aRetCodAnp,{'110104006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO CACHALOTE'})
+	Aadd(aRetCodAnp,{'110101054','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CACHALOTE'})
+	Aadd(aRetCodAnp,{'110106010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE CAJUEIRO'})
+	Aadd(aRetCodAnp,{'610802001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API CALUMET/EUA CALPAR 150'})
+	Aadd(aRetCodAnp,{'610802002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API CALUMET/EUA CALPAR 500'})
+	Aadd(aRetCodAnp,{'110202007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE CALYPSO'})
+	Aadd(aRetCodAnp,{'110104011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO CAMARUPIM'})
+	Aadd(aRetCodAnp,{'110106002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE CAMORIM'})
+	Aadd(aRetCodAnp,{'140201001','INSUMO BRUTO RENOVAVEIS ETANOL MATÉRIA - PRIMA DE 1ª GERAÇÃO CANA DE AÇÚCAR'})
+	Aadd(aRetCodAnp,{'110111002','INSUMO BRUTO PETRÓLEO NACIONAL TERRA BAHIA CATU CANÁRIO'})
+	Aadd(aRetCodAnp,{'110103022','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO CANÁRIO'})
+	Aadd(aRetCodAnp,{'110103006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO CANDEIAS'})
+	Aadd(aRetCodAnp,{'110105003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR CANTO DO AMARO'})
+	Aadd(aRetCodAnp,{'110201010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CAÑADON SECO'})
+	Aadd(aRetCodAnp,{'110201011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CAÑO LIMÓN'})
+	Aadd(aRetCodAnp,{'530206001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CAP MODIFICADO POR BORRACHA CAP MODIFICADO POR BORRACHA DE PNEU AB8'})
+	Aadd(aRetCodAnp,{'530204001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CAP MODIFICADO POR POLÍMEROS CAP MODIFICADO POR POLÍMERO 55/75-E'})
+	Aadd(aRetCodAnp,{'530204002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CAP MODIFICADO POR POLÍMEROS CAP MODIFICADO POR POLÍMERO 60/85-E'})
+	Aadd(aRetCodAnp,{'530204003','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CAP MODIFICADO POR POLÍMEROS CAP MODIFICADO POR POLÍMERO 65/90-E'})
+	Aadd(aRetCodAnp,{'110201064','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CARABOBO'})
+	Aadd(aRetCodAnp,{'110201012','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CARANDA'})
+	Aadd(aRetCodAnp,{'110101010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CARAPEBA'})
+	Aadd(aRetCodAnp,{'110101011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CARATINGA'})
+	Aadd(aRetCodAnp,{'110108002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ CARAUNAS'})
+	Aadd(aRetCodAnp,{'110107001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS CARAVELA'})
+	Aadd(aRetCodAnp,{'110105030','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR CARDEAL'})
+	Aadd(aRetCodAnp,{'120202002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA AMÉRICA DO NORTE & CARIBE CARLINE'})
+	Aadd(aRetCodAnp,{'110202011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE CASCADE CHINOOK'})
+	Aadd(aRetCodAnp,{'110106003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE CASTANHAL'})
+	Aadd(aRetCodAnp,{'110201066','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CASTILLA BLEND'})
+	Aadd(aRetCodAnp,{'110108003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ CEARÁ MAR'})
+	Aadd(aRetCodAnp,{'110203085','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA CEIBA'})
+	Aadd(aRetCodAnp,{'110201013','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CEUTA'})
+	Aadd(aRetCodAnp,{'110207001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA CHALLIS'})
+	Aadd(aRetCodAnp,{'110205034','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA CHAMPION'})
+	Aadd(aRetCodAnp,{'110105023','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR CHAUÁ'})
+	Aadd(aRetCodAnp,{'110101012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CHERNE'})
+	Aadd(aRetCodAnp,{'110205031','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA CHIM SÃO'})
+	Aadd(aRetCodAnp,{'110201014','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CHUBUT'})
+	Aadd(aRetCodAnp,{'620501002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS MOTORES 4 TEMPOS CICLO DIESEL'})
+	Aadd(aRetCodAnp,{'620501001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS MOTORES 4 TEMPOS CICLO OTTO'})
+	Aadd(aRetCodAnp,{'610101005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I CILINDRO I'})
+	Aadd(aRetCodAnp,{'610101006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I CILINDRO II'})
+	Aadd(aRetCodAnp,{'530101001','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS'})
+	Aadd(aRetCodAnp,{'530201004','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS CIMENTOS ASFÁLTICOS CAP-150-200'})
+	Aadd(aRetCodAnp,{'530201001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS CIMENTOS ASFÁLTICOS CAP-30-45'})
+	Aadd(aRetCodAnp,{'530201002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS CIMENTOS ASFÁLTICOS CAP-50-70'})
+	Aadd(aRetCodAnp,{'530201003','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS CIMENTOS ASFÁLTICOS CAP-85-100'})
+	Aadd(aRetCodAnp,{'530101020','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS DE PETRÓLEO MODIFICADOS POR BORRACHA MOÍDA DE PNEUS (ASFALTOS BORRACHA)'})
+	Aadd(aRetCodAnp,{'530101018','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS CIMENTOS ASFÁLTICOS DE PETRÓLEO MODIFICADOS POR POLÍMEROS'})
+	Aadd(aRetCodAnp,{'110205006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA CINTA'})
+	Aadd(aRetCodAnp,{'110201015','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL COBLAN BLEND'})
+	Aadd(aRetCodAnp,{'110203013','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA COCO'})
+	Aadd(aRetCodAnp,{'110202001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE COLD LAKE BLEND'})
+	Aadd(aRetCodAnp,{'110105033','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR COLIBRI'})
+	Aadd(aRetCodAnp,{'120104001','INSUMO BRUTO CONDENSADO NACIONAL BACIA DO ESPIRITO SANTO CONDENSADO CAMARUPIM'})
+	Aadd(aRetCodAnp,{'110107017','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS CONDENSADO DE MERLUZA'})
+	Aadd(aRetCodAnp,{'110107018','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS CONDENSADO DE MEXILHAO'})
+	Aadd(aRetCodAnp,{'120102001','INSUMO BRUTO CONDENSADO NACIONAL OUTROS CONDENSADOS CONDENSADO PARA PETROQUÍMICA'})
+	Aadd(aRetCodAnp,{'120104002','INSUMO BRUTO CONDENSADO NACIONAL BACIA DO ESPIRITO SANTO CONDENSADO PEROA'})
+	Aadd(aRetCodAnp,{'120205009','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA CONDENSADO SENIPAH'})
+	Aadd(aRetCodAnp,{'610804001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PENRECO/USA CONOSOL 260'})
+	Aadd(aRetCodAnp,{'540101002','DERIVADOS PESADOS COQUE COQUE COQUE COQUE CALCINADO'})
+	Aadd(aRetCodAnp,{'540101001','DERIVADOS PESADOS COQUE COQUE COQUE COQUE VERDE'})
+	Aadd(aRetCodAnp,{'110107002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS CORAL'})
+	Aadd(aRetCodAnp,{'610806006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA CORE 100'})
+	Aadd(aRetCodAnp,{'610806007','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA CORE 150'})
+	Aadd(aRetCodAnp,{'610806008','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA CORE 2500'})
+	Aadd(aRetCodAnp,{'610806009','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA CORE 600'})
+	Aadd(aRetCodAnp,{'620601003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS CORRENTE DE MOTOSSERRA'})
+	Aadd(aRetCodAnp,{'110201016','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CORRIENTES'})
+	Aadd(aRetCodAnp,{'110101013','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS CORVINA'})
+	Aadd(aRetCodAnp,{'120207001','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA COSSACK'})
+	Aadd(aRetCodAnp,{'110206020','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS CPC BLEND'})
+	Aadd(aRetCodAnp,{'110104008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO CREJOA'})
+	Aadd(aRetCodAnp,{'110201017','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CUPIAGUA'})
+	Aadd(aRetCodAnp,{'110108004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ CURIMÃ/ESPADA'})
+	Aadd(aRetCodAnp,{'110201018','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL CUSIANA'})
+	Aadd(aRetCodAnp,{'330201007','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS C9 DIHIDROGENADO (OU C9 DE PIRÓLISE)'})
+	Aadd(aRetCodAnp,{'110205007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA DAÍ HUNG'})
+	Aadd(aRetCodAnp,{'110203086','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA DALIA'})
+	Aadd(aRetCodAnp,{'110205008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA DAQUING'})
+	Aadd(aRetCodAnp,{'340101002','DERIVADOS LEVES OUTROS DERIVADOS LEVES OUTROS DERIVADOS LEVES OUTROS DERIVADOS LEVES DERIVADOS LEVES INTERMEDIÁRIOS'})
+	Aadd(aRetCodAnp,{'130202002','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO DERIVADOS LEVES PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'430101002','DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS DERIVADOS MÉDIOS INTERMEDIÁRIOS'})
+	Aadd(aRetCodAnp,{'130202003','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO DERIVADOS MÉDIOS PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'560101002','DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS DERIVADOS PESADOS INTERMEDIÁRIOS'})
+	Aadd(aRetCodAnp,{'130202004','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO DERIVADOS PESADOS PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'820101032','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B S10 PARA GERAÇÃO DE ENERGIA ELÉTRICA'})
+	Aadd(aRetCodAnp,{'820101026','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B S1800 NÃO RODOVIÁRIO PARA GERAÇÃO DE ENERGIA ELÉTRICA'})
+	Aadd(aRetCodAnp,{'820101027','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B S500 PARA GERAÇÃO DE ENERGIA ELÉTRICA'})
+	Aadd(aRetCodAnp,{'820101005','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B15'})
+	Aadd(aRetCodAnp,{'820101022','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B2 ESPECIAL - 200 PPM ENXOFRE'})
+	Aadd(aRetCodAnp,{'820101031','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B20 S10 ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101014','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B20 S1800 NÃO RODOVIÁRIO - ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101016','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL B20 S500 - ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101017','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL MARÍTIMO - DMA B2'})
+	Aadd(aRetCodAnp,{'820101018','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL MARÍTIMO - DMA B5'})
+	Aadd(aRetCodAnp,{'820101019','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL MARÍTIMO - DMB B2'})
+	Aadd(aRetCodAnp,{'820101020','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL MARÍTIMO - DMB B5'})
+	Aadd(aRetCodAnp,{'820101021','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL DIESEL NÁUTICO B2 ESPECIAL - 200 PPM ENXOFRE'})
+	Aadd(aRetCodAnp,{'330101003','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS DILUENTE DE TINTAS'})
+	Aadd(aRetCodAnp,{'130202006','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO DILUENTE PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'110203014','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA DJENO BLEND'})
+	Aadd(aRetCodAnp,{'420201001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO DMA - MGO'})
+	Aadd(aRetCodAnp,{'420201003','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO DMB - MDO'})
+	Aadd(aRetCodAnp,{'120204010','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO DOLPHIN'})
+	Aadd(aRetCodAnp,{'110103007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO DOM JOÃO'})
+	Aadd(aRetCodAnp,{'110204017','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO DOROOD'})
+	Aadd(aRetCodAnp,{'110204051','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO DSL'})
+	Aadd(aRetCodAnp,{'110204018','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO DUBAI'})
+	Aadd(aRetCodAnp,{'110205035','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA DULANG'})
+	Aadd(aRetCodAnp,{'110205022','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA DURI CRUDE OIL'})
+	Aadd(aRetCodAnp,{'110203069','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EA CRUDE'})
+	Aadd(aRetCodAnp,{'110203015','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EAST ZEIT MIX'})
+	Aadd(aRetCodAnp,{'110203104','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EBOME'})
+	Aadd(aRetCodAnp,{'610903001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API EXXO MOBIL/EUA EHC 45'})
+	Aadd(aRetCodAnp,{'610903002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API EXXO MOBIL/EUA EHC 60'})
+	Aadd(aRetCodAnp,{'110206005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS EKOFISH'})
+	Aadd(aRetCodAnp,{'110203016','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EL HUEMEL'})
+	Aadd(aRetCodAnp,{'110203017','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EL MORGAN'})
+	Aadd(aRetCodAnp,{'110203018','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EL ORIENTE'})
+	Aadd(aRetCodAnp,{'110203088','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EL SHARARA'})
+	Aadd(aRetCodAnp,{'110203019','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA EMERAUDE'})
+	Aadd(aRetCodAnp,{'530203009','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÃO ASFÁLTICA CATIÔNICA DE RUPTURA CONTROLADA PARA SERVIÇO DE LAMA ASFÁLTICA'})
+	Aadd(aRetCodAnp,{'530203006','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÃO ASFÁLTICA DE RUPTURA LENTA CATIÔNICA PARA SERVIÇO DE LAMA ASFÁLTICA'})
+	Aadd(aRetCodAnp,{'530203007','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÃO ASFÁLTICA DE RUPTURA LENTA DE CARGA NEUTRA PARA SERVIÇO DE LAMA ASFÁLTICA'})
+	Aadd(aRetCodAnp,{'530203008','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÃO ASFÁLTICA PARA SERVIÇO DE IMPRIMAÇÃO'})
+	Aadd(aRetCodAnp,{'530205004','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS EMULSÕES ASF. MOD. POR POLÍMEROS RC1C-E'})
+	Aadd(aRetCodAnp,{'530205005','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS EMULSÕES ASF. MOD. POR POLÍMEROS RL1C-E'})
+	Aadd(aRetCodAnp,{'530205003','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS EMULSÕES ASF. MOD. POR POLÍMEROS RM1C-E'})
+	Aadd(aRetCodAnp,{'530205001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS EMULSÕES ASF. MOD. POR POLÍMEROS RR1C-E'})
+	Aadd(aRetCodAnp,{'530205002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS EMULSÕES ASF. MOD. POR POLÍMEROS RR2C-E'})
+	Aadd(aRetCodAnp,{'530101003','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS'})
+	Aadd(aRetCodAnp,{'530101019','DERIVADOS PESADOS ASFALTOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS CATIÔNICAS MODIFICADAS POR POLÍMEROS ELASTOMÉRICOS'})
+	Aadd(aRetCodAnp,{'530203005','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÕES ASFÁLTICAS RL-1C'})
+	Aadd(aRetCodAnp,{'530203003','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÕES ASFÁLTICAS RM-1C'})
+	Aadd(aRetCodAnp,{'530203004','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÕES ASFÁLTICAS RM-2C'})
+	Aadd(aRetCodAnp,{'530203001','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÕES ASFÁLTICAS RR-1C'})
+	Aadd(aRetCodAnp,{'530203002','DERIVADOS PESADOS ASFALTOS INDUSTRIALIZADOS EMULSÕES ASFÁLTICAS EMULSÕES ASFÁLTICAS RR-2C'})
+	Aadd(aRetCodAnp,{'110101014','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ENCHOVA'})
+	Aadd(aRetCodAnp,{'620101002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS ENGRENAGENS E SISTEMAS CIRCULATÓRIOS'})
+	Aadd(aRetCodAnp,{'110107015','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS ENTORNO DE IARA'})
+	Aadd(aRetCodAnp,{'720101001','SUBPRODUTOS OU ADITIVOS ENXOFRE ENXOFRE ENXOFRE ENXOFRE LÍQUIDO'})
+	Aadd(aRetCodAnp,{'720101002','SUBPRODUTOS OU ADITIVOS ENXOFRE ENXOFRE ENXOFRE ENXOFRE SÓLIDO'})
+	Aadd(aRetCodAnp,{'120205004','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA ERAWAN'})
+	Aadd(aRetCodAnp,{'110203079','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ERHA'})
+	Aadd(aRetCodAnp,{'110203020','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ES SIDER'})
+	Aadd(aRetCodAnp,{'110201019','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ESCALANTE'})
+	Aadd(aRetCodAnp,{'110203021','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ESCRAVOS'})
+	Aadd(aRetCodAnp,{'110108005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ ESPADA'})
+	Aadd(aRetCodAnp,{'110101015','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ESPADARTE'})
+	Aadd(aRetCodAnp,{'110104002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO ESPIRITO SANTO'})
+	Aadd(aRetCodAnp,{'110101016','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS ESPÍRITO SANTO SUBMARINO'})
+	Aadd(aRetCodAnp,{'110206025','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS ESPO'})
+	Aadd(aRetCodAnp,{'120203007','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA ESPOIR'})
+	Aadd(aRetCodAnp,{'620101007','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS ESTAMPAGEM'})
+	Aadd(aRetCodAnp,{'140102001','INSUMO BRUTO RENOVAVEIS BIODIESEL ÉSTERES ÉSTER METÍLICO'})
+	Aadd(aRetCodAnp,{'110105004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR ESTREITO'})
+	Aadd(aRetCodAnp,{'110107003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS ESTRELA DO MAR'})
+	Aadd(aRetCodAnp,{'110203095','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ETAME'})
+	Aadd(aRetCodAnp,{'210301001','GASES GASES OUTROS GASES C2 ETANO'})
+	Aadd(aRetCodAnp,{'810102001','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL ANIDRO ETANOL ANIDRO'})
+	Aadd(aRetCodAnp,{'810102004','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL ANIDRO ETANOL ANIDRO COM CORANTE'})
+	Aadd(aRetCodAnp,{'810102003','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL ANIDRO ETANOL ANIDRO DE REFERÊNCIA - EAR'})
+	Aadd(aRetCodAnp,{'810102002','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL ANIDRO ETANOL ANIDRO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'130201002','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS ETANOL ANIDRO INSUMO PARA BIODIESEL'})
+	Aadd(aRetCodAnp,{'810103001','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL FORA DE ESPECIFICAÇÃO ETANOL FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'810101002','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO ADITIVADO'})
+	Aadd(aRetCodAnp,{'810101001','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO COMUM'})
+	Aadd(aRetCodAnp,{'810101006','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO DE REFERÊNCIA - EHR'})
+	Aadd(aRetCodAnp,{'810101003','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'810101004','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO PREMIUM'})
+	Aadd(aRetCodAnp,{'810101005','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL ETANOL ETANOL HIDRATADO ETANOL HIDRATADO PREMIUM ADITIVADO'})
+	Aadd(aRetCodAnp,{'210301002','GASES GASES OUTROS GASES C2 ETENO'})
+	Aadd(aRetCodAnp,{'330201010','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS ETILBENZENO'})
+	Aadd(aRetCodAnp,{'611003001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETRONAS/MALÁSIA ETRO 4'})
+	Aadd(aRetCodAnp,{'611003002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETRONAS/MALÁSIA ETRO 6'})
+	Aadd(aRetCodAnp,{'611003003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETRONAS/MALÁSIA ETRO 8'})
+	Aadd(aRetCodAnp,{'110204016','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO FAO BLEND'})
+	Aadd(aRetCodAnp,{'110105005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR FAZENDA ALEGRE'})
+	Aadd(aRetCodAnp,{'110104012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO FAZENDA ALEGRE'})
+	Aadd(aRetCodAnp,{'110105006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR FAZENDA BELÉM'})
+	Aadd(aRetCodAnp,{'110105007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR FAZENDA POCINHO'})
+	Aadd(aRetCodAnp,{'110103019','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO FAZENDA SÃO ESTEVÃO'})
+	Aadd(aRetCodAnp,{'110104003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO FAZENDA SÃO RAFAEL'})
+	Aadd(aRetCodAnp,{'610904001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API EXCEL PARALUBES/FILIPINAS FLINT HILLS'})
+	Aadd(aRetCodAnp,{'110206006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS FLOTTA'})
+	Aadd(aRetCodAnp,{'110206007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS FLOTTA OCIDENTAL'})
+	Aadd(aRetCodAnp,{'110203022','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA FORCADOS'})
+	Aadd(aRetCodAnp,{'110204019','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO FOROOZAN'})
+	Aadd(aRetCodAnp,{'110206008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS FORTIES'})
+	Aadd(aRetCodAnp,{'110206009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS FORTIES BLEND'})
+	Aadd(aRetCodAnp,{'110101043','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS FRADE'})
+	Aadd(aRetCodAnp,{'110201020','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL FURRIAL'})
+	Aadd(aRetCodAnp,{'110104009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO GAIVOTA'})
+	Aadd(aRetCodAnp,{'110105034','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR GALO DE CAMPINA'})
+	Aadd(aRetCodAnp,{'110203023','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA GAMBA'})
+	Aadd(aRetCodAnp,{'110101017','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS GAROUPA'})
+	Aadd(aRetCodAnp,{'110101018','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS GAROUPINHA'})
+	Aadd(aRetCodAnp,{'210302004','GASES GASES OUTROS GASES OUTROS GASES GÁS ÁCIDO'})
+	Aadd(aRetCodAnp,{'210101001','GASES GASES GÁS COMBUSTÍVEL GÁS COMBUSTÍVEL GÁS COMBUSTÍVEL'})
+	Aadd(aRetCodAnp,{'210302003','GASES GASES OUTROS GASES OUTROS GASES GÁS DE XISTO'})
+	Aadd(aRetCodAnp,{'210302002','GASES GASES OUTROS GASES OUTROS GASES GÁS INTERMEDIÁRIO'})
+	Aadd(aRetCodAnp,{'210204001','GASES GASES GASES LIQUEFEITOS OUTROS GASES LIQUEFEITOS GÁS LIQUEFEITO INTERMEDIÁRIO'})
+	Aadd(aRetCodAnp,{'220101003','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL COMPRIMIDO'})
+	Aadd(aRetCodAnp,{'220101004','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL LIQUEFEITO'})
+	Aadd(aRetCodAnp,{'220101002','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL SECO'})
+	Aadd(aRetCodAnp,{'220101001','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL ÚMIDO'})
+	Aadd(aRetCodAnp,{'220101005','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL VEICULAR'})
+	Aadd(aRetCodAnp,{'220101006','GASES GÁS NATURAL GÁS NATURAL GÁS NATURAL GÁS NATURAL VEICULAR PADRÃO'})
+	Aadd(aRetCodAnp,{'130202001','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO GASES LIQUEFEITOS PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'130202005','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO GASÓLEO PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'520101001','DERIVADOS PESADOS GASÓLEOS GASÓLEOS GASÓLEOS GASÓLEOS'})
+	Aadd(aRetCodAnp,{'320101001','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA A GASOLINA A COMUM'})
+	Aadd(aRetCodAnp,{'320101003','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA A GASOLINA A FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'320101002','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA A GASOLINA A PREMIUM'})
+	Aadd(aRetCodAnp,{'320102001','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA C GASOLINA C COMUM'})
+	Aadd(aRetCodAnp,{'320102002','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA C GASOLINA C COMUM ADITIVADA'})
+	Aadd(aRetCodAnp,{'320102004','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA C GASOLINA C FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'320102003','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA C GASOLINA C PREMIUM'})
+	Aadd(aRetCodAnp,{'320102005','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS GASOLINA C GASOLINA C PREMIUM ADITIVADA'})
+	Aadd(aRetCodAnp,{'320201001','DERIVADOS LEVES GASOLINAS GASOLINAS DE AVIAÇÃO GASOLINAS DE AVIAÇÃO GASOLINA DE AVIAÇÃO'})
+	Aadd(aRetCodAnp,{'320201002','DERIVADOS LEVES GASOLINAS GASOLINAS DE AVIAÇÃO GASOLINAS DE AVIAÇÃO GASOLINA DE AVIAÇÃO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'320103001','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS OUTRAS GASOLINAS AUTOMOTIVAS GASOLINA DE REFERÊNCIA - NBR 16038'})
+	Aadd(aRetCodAnp,{'320103003','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS OUTRAS GASOLINAS AUTOMOTIVAS GASOLINA DE REFERÊNCIA - PROCONVE L-6'})
+	Aadd(aRetCodAnp,{'220102001','GASES GÁS NATURAL GÁS NATURAL LÍQUIDO DE GÁS NATURAL GASOLINA NATURAL (C5+)'})
+	Aadd(aRetCodAnp,{'320301002','DERIVADOS LEVES GASOLINAS OUTRAS GASOLINAS OUTRAS GASOLINAS GASOLINA PARA EXPORTAÇÃO'})
+	Aadd(aRetCodAnp,{'110204020','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO GAVARZIN'})
+	Aadd(aRetCodAnp,{'110114003','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO PARNAÍBA GAVIÃO BRANCO'})
+	Aadd(aRetCodAnp,{'110114001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO PARNAÍBA GAVIÃO REAL'})
+	Aadd(aRetCodAnp,{'110114002','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO PARNAÍBA GAVIÃO VERMELHO'})
+	Aadd(aRetCodAnp,{'110203024','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA GEISUM'})
+	Aadd(aRetCodAnp,{'120205012','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA GERAGAI'})
+	Aadd(aRetCodAnp,{'110207002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA GIPPSLAND BLEND'})
+	Aadd(aRetCodAnp,{'110203087','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA GIRASSOL'})
+	Aadd(aRetCodAnp,{'730101002','SUBPRODUTOS OU ADITIVOS OUTROS SUB-PRODUTOS OUTROS SUB-PRODUTOS OUTROS SUB-PRODUTOS GLICERINA'})
+	Aadd(aRetCodAnp,{'210203001','GASES GASES GASES LIQUEFEITOS GASES LIQUEFEITO DE PETRÓLEO - GLP GLP'})
+	Aadd(aRetCodAnp,{'210203002','GASES GASES GASES LIQUEFEITOS GASES LIQUEFEITO DE PETRÓLEO - GLP GLP FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'110104005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO GOLFINHO'})
+	Aadd(aRetCodAnp,{'140101023','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS GORDURA BOVINA'})
+	Aadd(aRetCodAnp,{'140101024','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS GORDURA DE FRANGO'})
+	Aadd(aRetCodAnp,{'140101025','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS GORDURA DE PORCO'})
+	Aadd(aRetCodAnp,{'650101004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS GRAXAS GRAXAS GRAXAS GRAXAS DE CALCIO'})
+	Aadd(aRetCodAnp,{'650101003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS GRAXAS GRAXAS GRAXAS GRAXAS DE LITIO'})
+	Aadd(aRetCodAnp,{'650101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS GRAXAS GRAXAS GRAXAS GRAXAS MINERAIS'})
+	Aadd(aRetCodAnp,{'110207003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA GRIFFIN'})
+	Aadd(aRetCodAnp,{'110201021','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL GUAFITA BLEND'})
+	Aadd(aRetCodAnp,{'110103013','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO GUANAMBI'})
+	Aadd(aRetCodAnp,{'110201022','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL GUANIPA'})
+	Aadd(aRetCodAnp,{'110203025','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA GULF OF SUEZ'})
+	Aadd(aRetCodAnp,{'110203026','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA GULF OF SUEZ MIX'})
+	Aadd(aRetCodAnp,{'110206011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS GULL FALKS'})
+	Aadd(aRetCodAnp,{'110206010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS GULL FALKS C'})
+	Aadd(aRetCodAnp,{'110106013','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE HARPIA'})
+	Aadd(aRetCodAnp,{'110203027','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA HASSI MESSAOUD'})
+	Aadd(aRetCodAnp,{'110203028','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA HASSI RMEL'})
+	Aadd(aRetCodAnp,{'330101008','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS HEPTANO'})
+	Aadd(aRetCodAnp,{'330101002','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS HEXANO'})
+	Aadd(aRetCodAnp,{'330101009','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS HEXENO'})
+	Aadd(aRetCodAnp,{'110202009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE HIBERNIA'})
+	Aadd(aRetCodAnp,{'110201068','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL HIDES'})
+	Aadd(aRetCodAnp,{'620101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS HIDRÁULICO'})
+	Aadd(aRetCodAnp,{'610201001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS NAFTÊNICOS NAFTÊNICOS - GRUPO V HIDROGENADO LEVE'})
+	Aadd(aRetCodAnp,{'610201002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS NAFTÊNICOS NAFTÊNICOS - GRUPO V HIDROGENADO MÉDIO'})
+	Aadd(aRetCodAnp,{'610201003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS NAFTÊNICOS NAFTÊNICOS - GRUPO V HIDROGENADO PESADO'})
+	Aadd(aRetCodAnp,{'710101001','SUBPRODUTOS OU ADITIVOS HIDROGÊNIO HIDROGÊNIO HIDROGÊNIO HIDROGÊNIO'})
+	Aadd(aRetCodAnp,{'110203074','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA HUNGO'})
+	Aadd(aRetCodAnp,{'610808001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API SHELL/ALEMANHA HVI 120'})
+	Aadd(aRetCodAnp,{'610808002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API SHELL/ALEMANHA HVI 60'})
+	Aadd(aRetCodAnp,{'110201023','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL HYDRA'})
+	Aadd(aRetCodAnp,{'110107016','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS IARA'})
+	Aadd(aRetCodAnp,{'110103008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO ILHÉUS'})
+	Aadd(aRetCodAnp,{'110203029','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA IMA LIGHT'})
+	Aadd(aRetCodAnp,{'120205005','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA INDIANO'})
+	Aadd(aRetCodAnp,{'110204021','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO IRANIANO LEVE'})
+	Aadd(aRetCodAnp,{'110204022','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO IRANIANO MISTURA'})
+	Aadd(aRetCodAnp,{'110204023','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO IRANIANO PESADO'})
+	Aadd(aRetCodAnp,{'110105037','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR IRERE'})
+	Aadd(aRetCodAnp,{'620101004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS ISOLANTE TIPO A'})
+	Aadd(aRetCodAnp,{'620101005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS ISOLANTE TIPO B'})
+	Aadd(aRetCodAnp,{'850101003','COMBUSTÍVEIS ALTERNATIVOS QUEROSENE ALTERNATIVO QUEROSENE ALTERNATIVO QUEROSENE DE AVIAÇÃO ALTERNATIVO Isoparafinas sintetizadas (SIP)'})
+	Aadd(aRetCodAnp,{'330101010','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS ISOPENTANO'})
+	Aadd(aRetCodAnp,{'110202002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE ISTHMUS'})
+	Aadd(aRetCodAnp,{'110202003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE ISTHMUS MAYA'})
+	Aadd(aRetCodAnp,{'110207004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA JABIRU'})
+	Aadd(aRetCodAnp,{'110101046','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS JABUTI'})
+	Aadd(aRetCodAnp,{'110204024','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO JAMBUR BAR HASSAN'})
+	Aadd(aRetCodAnp,{'110113001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMAMU JIRIBATUBA'})
+	Aadd(aRetCodAnp,{'110105015','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR JOÃO DE BARRO'})
+	Aadd(aRetCodAnp,{'110101019','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS JUBARTE'})
+	Aadd(aRetCodAnp,{'110203098','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA JUBILEE'})
+	Aadd(aRetCodAnp,{'110103015','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO JURITI'})
+	Aadd(aRetCodAnp,{'110205025','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA KAJI SEMOGA'})
+	Aadd(aRetCodAnp,{'110204025','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KANGAN'})
+	Aadd(aRetCodAnp,{'110204026','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KHAFJI'})
+	Aadd(aRetCodAnp,{'110204027','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KHAFJI BLEND'})
+	Aadd(aRetCodAnp,{'120204009','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO KHUFF'})
+	Aadd(aRetCodAnp,{'110205026','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA KIKEH'})
+	Aadd(aRetCodAnp,{'110204028','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KIRKUK'})
+	Aadd(aRetCodAnp,{'110204029','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KIRKUK BLEND'})
+	Aadd(aRetCodAnp,{'110203080','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA KISSANJE'})
+	Aadd(aRetCodAnp,{'120207004','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA KITAN'})
+	Aadd(aRetCodAnp,{'110203030','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA KITINA'})
+	Aadd(aRetCodAnp,{'110105025','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR KOCH'})
+	Aadd(aRetCodAnp,{'110203031','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA KOLE'})
+	Aadd(aRetCodAnp,{'110203084','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA KUITO'})
+	Aadd(aRetCodAnp,{'110203032','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA KUTUBU'})
+	Aadd(aRetCodAnp,{'110204030','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO KUWAIT'})
+	Aadd(aRetCodAnp,{'110205009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA LABUAN'})
+	Aadd(aRetCodAnp,{'110103021','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO LAGOA DO PAULO NORTE'})
+	Aadd(aRetCodAnp,{'110104004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO LAGOA PARDA'})
+	Aadd(aRetCodAnp,{'110201024','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOCINCO'})
+	Aadd(aRetCodAnp,{'110201025','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOCINCO LIVIANO'})
+	Aadd(aRetCodAnp,{'110201026','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOMEDIO'})
+	Aadd(aRetCodAnp,{'110201027','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOTRECO'})
+	Aadd(aRetCodAnp,{'110201028','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOTRECO HEAVY'})
+	Aadd(aRetCodAnp,{'110201029','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGOTRECO MEDIO'})
+	Aadd(aRetCodAnp,{'110201030','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LAGUNA'})
+	Aadd(aRetCodAnp,{'110205036','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA LALANG'})
+	Aadd(aRetCodAnp,{'110207005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA LAMINARIA'})
+	Aadd(aRetCodAnp,{'110204031','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO LAVAN BLEND'})
+	Aadd(aRetCodAnp,{'110207006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA LEGENDRE'})
+	Aadd(aRetCodAnp,{'110201031','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LEONA'})
+	Aadd(aRetCodAnp,{'110201032','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LEONA 21,9'})
+	Aadd(aRetCodAnp,{'110201033','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LEONA 24'})
+	Aadd(aRetCodAnp,{'120204002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO LIBIA'})
+	Aadd(aRetCodAnp,{'110101020','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS LINGUADO'})
+	Aadd(aRetCodAnp,{'120203006','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA LION'})
+	Aadd(aRetCodAnp,{'220102002','GASES GÁS NATURAL GÁS NATURAL LÍQUIDO DE GÁS NATURAL LÍQUIDO DE GÁS NATURAL'})
+	Aadd(aRetCodAnp,{'110105008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR LIVRAMENTO'})
+	Aadd(aRetCodAnp,{'110203033','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA LOKELE'})
+	Aadd(aRetCodAnp,{'110105009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR LORENA'})
+	Aadd(aRetCodAnp,{'110201034','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL LORETO'})
+	Aadd(aRetCodAnp,{'110204053','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO LOWER ZAKUM'})
+	Aadd(aRetCodAnp,{'110203034','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA LUCINA MARINE'})
+	Aadd(aRetCodAnp,{'110203035','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA LUCULA'})
+	Aadd(aRetCodAnp,{'110107008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS LULA'})
+	Aadd(aRetCodAnp,{'640201001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS PARAFINAS MACRO MACROCRISTALINAS MACROOLEOSAS'})
+	Aadd(aRetCodAnp,{'120205011','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA MALAMPAYA'})
+	Aadd(aRetCodAnp,{'110101021','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MALHADO'})
+	Aadd(aRetCodAnp,{'120103001','INSUMO BRUTO CONDENSADO NACIONAL CAMAMU MANATI'})
+	Aadd(aRetCodAnp,{'110203036','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MANDJI'})
+	Aadd(aRetCodAnp,{'120204003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO MARGHAM'})
+	Aadd(aRetCodAnp,{'110201035','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MARIA IGNES'})
+	Aadd(aRetCodAnp,{'110204032','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO MARIB LIGHT'})
+	Aadd(aRetCodAnp,{'110101022','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MARIMBA'})
+	Aadd(aRetCodAnp,{'110201036','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MARLAGO'})
+	Aadd(aRetCodAnp,{'110101023','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MARLIM'})
+	Aadd(aRetCodAnp,{'110101024','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MARLIM LESTE'})
+	Aadd(aRetCodAnp,{'110101025','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MARLIM SUL'})
+	Aadd(aRetCodAnp,{'110101039','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MARLIN/VOADOR'})
+	Aadd(aRetCodAnp,{'110204033','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO MASILA BLEND'})
+	Aadd(aRetCodAnp,{'120207002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA MAUI'})
+	Aadd(aRetCodAnp,{'110202004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE MAYA'})
+	Aadd(aRetCodAnp,{'110202005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE MAYA LEVE'})
+	Aadd(aRetCodAnp,{'110201069','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MAYNA'})
+	Aadd(aRetCodAnp,{'110203037','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MBIA'})
+	Aadd(aRetCodAnp,{'110201037','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MEDANITO'})
+	Aadd(aRetCodAnp,{'140201002','INSUMO BRUTO RENOVAVEIS ETANOL MATÉRIA - PRIMA DE 1ª GERAÇÃO MELAÇO'})
+	Aadd(aRetCodAnp,{'110203078','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MELLITAH'})
+	Aadd(aRetCodAnp,{'120203005','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA MELLITAH'})
+	Aadd(aRetCodAnp,{'110201038','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MEREY'})
+	Aadd(aRetCodAnp,{'110201039','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MEREY/LEONA'})
+	Aadd(aRetCodAnp,{'120101001','INSUMO BRUTO CONDENSADO NACIONAL BACIA DE SANTOS MERLUZA'})
+	Aadd(aRetCodAnp,{'110201040','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MESA'})
+	Aadd(aRetCodAnp,{'110201041','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MESCLA VENEZUELANO'})
+	Aadd(aRetCodAnp,{'740101007','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS METIL TERC BUTIL ETER - MTBE'})
+	Aadd(aRetCodAnp,{'640101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS PARAFINAS MICRO MICROCRISTALINAS MICROOLEOSAS'})
+	Aadd(aRetCodAnp,{'140201003','INSUMO BRUTO RENOVAVEIS ETANOL MATÉRIA - PRIMA DE 1ª GERAÇÃO MILHO'})
+	Aadd(aRetCodAnp,{'110205027','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA MINAS'})
+	Aadd(aRetCodAnp,{'110103009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO MIRANGA'})
+	Aadd(aRetCodAnp,{'110103010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO MIRANGA/ÁGUA GRANDE'})
+	Aadd(aRetCodAnp,{'110205010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA MIRI LEVE'})
+	Aadd(aRetCodAnp,{'120203008','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA MISKAR'})
+	Aadd(aRetCodAnp,{'110301001','INSUMO BRUTO PETRÓLEO MISTURA MISTURA MISTURA DE PETRÓLEOS'})
+	Aadd(aRetCodAnp,{'110208001','INSUMO BRUTO PETRÓLEO IMPORTADO OUTROS PETRÓLEOS IMPORTADOS MISTURA DE PETRÓLEOS IMPORTADOS'})
+	Aadd(aRetCodAnp,{'110203038','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MOANDA'})
+	Aadd(aRetCodAnp,{'110203089','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MONDO'})
+	Aadd(aRetCodAnp,{'110201042','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL MONOGAS'})
+	Aadd(aRetCodAnp,{'110101026','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS MOREIA'})
+	Aadd(aRetCodAnp,{'620502001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS MOTORES 2 TEMPOS MOTORES 2 TEMPOS'})
+	Aadd(aRetCodAnp,{'110203039','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA MOUDI'})
+	Aadd(aRetCodAnp,{'110202008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE MSW EDMONTON'})
+	Aadd(aRetCodAnp,{'110204034','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO MURBAN'})
+	Aadd(aRetCodAnp,{'110207009','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA MUTINEER'})
+	Aadd(aRetCodAnp,{'611201002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API SHELL/ALEMANHA MVI (N) 40 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'611201003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API SHELL/ALEMANHA MVI 1050 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'611201001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API SHELL/ALEMANHA MVI(N) 170 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'610803002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API CEPSA LUBRIFICANTES/ESPANHA N 500'})
+	Aadd(aRetCodAnp,{'110110001','INSUMO BRUTO PETRÓLEO NACIONAL OUTROS PETRÓLEOS NACIONAIS NACIONAL MISTURA'})
+	Aadd(aRetCodAnp,{'310101001','DERIVADOS LEVES NAFTA NAFTA NAFTA PETROQUÍMICA NAFTA'})
+	Aadd(aRetCodAnp,{'310102001','DERIVADOS LEVES NAFTA NAFTA OUTRAS NAFTAS NAFTA DE XISTO'})
+	Aadd(aRetCodAnp,{'310103001','DERIVADOS LEVES NAFTA NAFTA NAFTA FORA DE ESPECIFICAÇÃO NAFTA FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'611207003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO NAFTALENOS ALQUILADOS (AN)'})
+	Aadd(aRetCodAnp,{'110101027','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS NAMORADO'})
+	Aadd(aRetCodAnp,{'110205011','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA NANHAI LIGHT'})
+	Aadd(aRetCodAnp,{'110201062','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL NAPO'})
+	Aadd(aRetCodAnp,{'110203040','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NEMBA'})
+	Aadd(aRetCodAnp,{'610801002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API YPF/ARGENTINA NEUTRAL OIL 150'})
+	Aadd(aRetCodAnp,{'610801004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API YPF/ARGENTINA NEUTRAL OIL 500'})
+	Aadd(aRetCodAnp,{'610801005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API YPF/ARGENTINA NEUTRAL OIL 60'})
+	Aadd(aRetCodAnp,{'610801003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API YPF/ARGENTINA NEUTRAL OIL300'})
+	Aadd(aRetCodAnp,{'610905001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API MOTIVA/EUA NEUTRAL 110'})
+	Aadd(aRetCodAnp,{'610101002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I NEUTRO LEVE'})
+	Aadd(aRetCodAnp,{'610401002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS RERREFINADOS RERREFINADOS NEUTRO LEVE RR'})
+	Aadd(aRetCodAnp,{'610906002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API LWART/BRASIL NEUTRO LEVE RR'})
+	Aadd(aRetCodAnp,{'610813002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API RERREFINADOR/BRASIL NEUTRO LEVE RR'})
+	Aadd(aRetCodAnp,{'610101003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I NEUTRO MÉDIO'})
+	Aadd(aRetCodAnp,{'610401003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS RERREFINADOS RERREFINADOS NEUTRO MÉDIO RR'})
+	Aadd(aRetCodAnp,{'610813003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API RERREFINADOR/BRASIL NEUTRO MÉDIO RR'})
+	Aadd(aRetCodAnp,{'610906003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API LWART/BRASIL NEUTRO MÉDIO RR'})
+	Aadd(aRetCodAnp,{'610101004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I NEUTRO PESADO'})
+	Aadd(aRetCodAnp,{'610401004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS RERREFINADOS RERREFINADOS NEUTRO PESADO RR'})
+	Aadd(aRetCodAnp,{'610906004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API LWART/BRASIL NEUTRO PESADO RR'})
+	Aadd(aRetCodAnp,{'610813004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API RERREFINADOR/BRASIL NEUTRO PESADO RR'})
+	Aadd(aRetCodAnp,{'611102001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 2002'})
+	Aadd(aRetCodAnp,{'611102002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 2004'})
+	Aadd(aRetCodAnp,{'611102003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 2006'})
+	Aadd(aRetCodAnp,{'611102004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 2008'})
+	Aadd(aRetCodAnp,{'611001001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 3030'})
+	Aadd(aRetCodAnp,{'611001002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 3043'})
+	Aadd(aRetCodAnp,{'611001003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 3050'})
+	Aadd(aRetCodAnp,{'611001004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 3060'})
+	Aadd(aRetCodAnp,{'611001005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API NESTE/FINLÂNDIA NEXBASE 3080'})
+	Aadd(aRetCodAnp,{'611202001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API PETROBRAS/BRASIL NH 10 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'611202002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API PETROBRAS/BRASIL NH 140 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'611202003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API PETROBRAS/BRASIL NH 20 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'110203041','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NIGERIANO BRASS LIGHT'})
+	Aadd(aRetCodAnp,{'110203042','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NIGERIANO LEVE'})
+	Aadd(aRetCodAnp,{'110203043','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NIGERIANO LEVE QUA IBOE'})
+	Aadd(aRetCodAnp,{'110203094','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NILE BLEND'})
+	Aadd(aRetCodAnp,{'110206024','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS NINIAN'})
+	Aadd(aRetCodAnp,{'110203044','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA NKOSSA'})
+	Aadd(aRetCodAnp,{'430101001','DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS NORMAL PARAFINAS'})
+	Aadd(aRetCodAnp,{'110206021','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS NORNE BLEND'})
+	Aadd(aRetCodAnp,{'120204004','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO NORTH FIELD'})
+	Aadd(aRetCodAnp,{'110207007','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA NORTH WEST SHELF'})
+	Aadd(aRetCodAnp,{'611203002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API NYNAS/FINLÂNDIA NYNAS T22 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'110203045','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ODUDU'})
+	Aadd(aRetCodAnp,{'110201043','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL OFICINA'})
+	Aadd(aRetCodAnp,{'110203046','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OGUENDJO'})
+	Aadd(aRetCodAnp,{'110203047','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OKAN'})
+	Aadd(aRetCodAnp,{'110203048','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OKONO'})
+	Aadd(aRetCodAnp,{'110203099','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OKORO'})
+	Aadd(aRetCodAnp,{'110203081','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OKWORI'})
+	Aadd(aRetCodAnp,{'430101004','DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS ÓLEO COMB. P/ TURBINA GERADORA DE ENERGIA ELÉTRICA'})
+	Aadd(aRetCodAnp,{'510101003','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL A - ALTO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL A FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'510101001','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL A - ALTO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL A1'})
+	Aadd(aRetCodAnp,{'510101002','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL A - ALTO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL A2'})
+	Aadd(aRetCodAnp,{'510102003','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL B - BAIXO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL B FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'510102001','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL B - BAIXO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL B1'})
+	Aadd(aRetCodAnp,{'510102002','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL B - BAIXO TEOR DE ENXOFRE ÓLEO COMBUSTÍVEL B2'})
+	Aadd(aRetCodAnp,{'510201001','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEO COMBUSTÍVEL MARÍTIMO'})
+	Aadd(aRetCodAnp,{'510201002','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEO COMBUSTÍVEL MARÍTIMO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'510201003','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEOS COMBUSTÍVEIS MARÍTIMOS ÓLEO COMBUSTÍVEL MARÍTIMO MISTURA (MF)'})
+	Aadd(aRetCodAnp,{'510301003','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS ÓLEO COMBUSTÍVEL PARA GERAÇÃO ELÉTRICA'})
+	Aadd(aRetCodAnp,{'510103001','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS INDUSTRIAIS ÓLEO COMBUSTÍVEL 3 (OC3) ÓLEO COMBUSTÍVEL 3 (OC3)'})
+	Aadd(aRetCodAnp,{'140101015','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE ABACATE (PERSIA AMERICANA)'})
+	Aadd(aRetCodAnp,{'140101009','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE ALGODÃO (GOSSYPIUM HIRSUT)'})
+	Aadd(aRetCodAnp,{'140101016','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE AMENDOIM (ORACHIS HYPOGEAE)'})
+	Aadd(aRetCodAnp,{'140101017','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE ANDIROBA (CARAPA GUIANERSIS)'})
+	Aadd(aRetCodAnp,{'140101005','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE BABAÇU (ORBINYA MARTIANA)'})
+	Aadd(aRetCodAnp,{'140101014','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE BURITI'})
+	Aadd(aRetCodAnp,{'140101018','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE COCO (COCUS NUMIFERA)'})
+	Aadd(aRetCodAnp,{'140101006','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE COLZA/CANOLA (BRESSICA CAMPESTRIS)'})
+	Aadd(aRetCodAnp,{'140101028','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE CRAMBE'})
+	Aadd(aRetCodAnp,{'140101021','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE FRITURA USADO'})
+	Aadd(aRetCodAnp,{'140101010','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE GIRASSOL (HELLANTHUS ANNUS)'})
+	Aadd(aRetCodAnp,{'140101012','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE LINHAÇA'})
+	Aadd(aRetCodAnp,{'140101013','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE MACAÚBA'})
+	Aadd(aRetCodAnp,{'140101001','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE MAMONA (RICINUS COMMUNIS)'})
+	Aadd(aRetCodAnp,{'140101030','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE MILHO'})
+	Aadd(aRetCodAnp,{'140101011','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE NABO-FORRAGEIRO'})
+	Aadd(aRetCodAnp,{'140101003','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE PALMA/DENDÊ (ELAEIS GUINEENSIS OU ELAEIS O'})
+	Aadd(aRetCodAnp,{'140101002','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE PALMISTE'})
+	Aadd(aRetCodAnp,{'140101008','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE PEQUI (JATROPHA CURCAS)'})
+	Aadd(aRetCodAnp,{'140101007','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE PINHÃO-MANSO'})
+	Aadd(aRetCodAnp,{'140101019','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE SÉSAMO (SESAMUN INDICUM)'})
+	Aadd(aRetCodAnp,{'140101004','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS ÓLEO DE SOJA (GLYCINE MAX)'})
+	Aadd(aRetCodAnp,{'560101001','DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS ÓLEO DE XISTO'})
+	Aadd(aRetCodAnp,{'420301003','DERIVADOS MÉDIOS ÓLEO DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL ÓLEO DIESEL A FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'420105001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S10 ÓLEO DIESEL A S10'})
+	Aadd(aRetCodAnp,{'420101004','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S1800 ÓLEO DIESEL A S1800 NÃO RODOVIÁRIO'})
+	Aadd(aRetCodAnp,{'420101005','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S1800 ÓLEO DIESEL A S1800 NÃO RODOVIÁRIO - ADITIVADO'})
+	Aadd(aRetCodAnp,{'420101003','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S1800 ÓLEO DIESEL A S1800 NÃO RODOVIÁRIO - FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'420102004','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S500 ÓLEO DIESEL A S500'})
+	Aadd(aRetCodAnp,{'420102005','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S500 ÓLEO DIESEL A S500 - ADITIVADO'})
+	Aadd(aRetCodAnp,{'420102003','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL A S500 ÓLEO DIESEL A S500 - FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'420104001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL ESPECIAIS ÓLEO DIESEL AUTOMOTIVO ESPECIAL - ENXOFRE 200 PPM'})
+	Aadd(aRetCodAnp,{'420301005','DERIVADOS MÉDIOS ÓLEO DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL ÓLEO DIESEL B FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'820101033','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S10 - ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101034','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S10 - COMUM'})
+	Aadd(aRetCodAnp,{'420106001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL AMD ÓLEO DIESEL B S10 AMD 10'})
+	Aadd(aRetCodAnp,{'820101011','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S1800 NÃO RODOVIÁRIO - ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101003','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S1800 NÃO RODOVIÁRIO - COMUM'})
+	Aadd(aRetCodAnp,{'820101013','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S500 - ADITIVADO'})
+	Aadd(aRetCodAnp,{'820101012','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL B S500 - COMUM'})
+	Aadd(aRetCodAnp,{'420106002','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEOS DIESEL AUTOMOTIVOS ÓLEOS DIESEL AMD ÓLEO DIESEL B S500 AMD 10'})
+	Aadd(aRetCodAnp,{'830101001','COMBUSTÍVEIS ALTERNATIVOS ÓLEO DIESEL ALTERNATIVO ÓLEO DIESEL RENOVÁVEL ÓLEO DIESEL DE CANA ÓLEO DIESEL DE CANA AMD 100'})
+	Aadd(aRetCodAnp,{'420301001','DERIVADOS MÉDIOS ÓLEO DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL ÓLEO DIESEL DE REFERÊNCIA - L-6 E P-7'})
+	Aadd(aRetCodAnp,{'420301004','DERIVADOS MÉDIOS ÓLEO DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL OLEO DIESEL DE REFERÊNCIA - MAR-I'})
+	Aadd(aRetCodAnp,{'420203001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO COM BIOCOMBUSTÍVEL ÓLEO DIESEL MARÍTIMO A2 ou DMA2'})
+	Aadd(aRetCodAnp,{'420203002','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO COM BIOCOMBUSTÍVEL ÓLEO DIESEL MARÍTIMO B2 ou DMB2'})
+	Aadd(aRetCodAnp,{'420201002','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL MARÍTIMO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'420202001','DERIVADOS MÉDIOS ÓLEO DIESEL ÓLEO DIESEL MARÍTIMO ÓLEO DIESEL ESPECIAIS ÓLEO DIESEL NÁUTICO ESPECIAL - ENXOFRE 200 PPM'})
+	Aadd(aRetCodAnp,{'820101030','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S10 B20 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'820101025','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S10 B30 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'820101006','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S1800 NÃO RODOVIÁRIO B20 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'820101036','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S1800 NÃO RODOVIÁRIO B30 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'820101015','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S500 B20 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'820101035','COMBUSTÍVEIS ALTERNATIVOS BIODIESEL BIODIESEL BIODIESEL ÓLEO DIESEL S500 B30 AUTORIZATIVO'})
+	Aadd(aRetCodAnp,{'611207002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO ÓLEO MINERAL BRANCO'})
+	Aadd(aRetCodAnp,{'611301001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS ÓLEOS BÁSICOS -  GRUPO I ÓLEOS BÁSICOS  - GRUPO I ÓLEOS BÁSICOS - GRUPO I'})
+	Aadd(aRetCodAnp,{'610601001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS ÓLEOS BÁSICOS - GRUPO II ÓLEOS BÁSICOS - GRUPO II ÓLEOS BÁSICOS - GRUPO II'})
+	Aadd(aRetCodAnp,{'610701001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS ÓLEOS BÁSICOS - GRUPO III ÓLEOS BÁSICOS - GRUPO III ÓLEOS BÁSICOS - GRUPO III'})
+	Aadd(aRetCodAnp,{'510301002','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS ÓLEOS COMBUSTÍVEIS PARA EXPORTAÇÃO'})
+	Aadd(aRetCodAnp,{'620601001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS EXTENSORES E PLASTIFICANTES'})
+	Aadd(aRetCodAnp,{'660101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS OUTROS ÓLEOS LUB. PARAF. E GRAXAS OUTROS ÓLEOS LUB. PARAF. E GRAXAS OUTROS ÓLEOS LUB. PARAF. E GRAXAS ÓLEOS LUB. PARAF E GRAXAS INTERMEDIÁRIOS'})
+	Aadd(aRetCodAnp,{'620401001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES FERROVIÁRIOS ÓLEOS LUBRIFICANTES FERROVIÁRIOS ÓLEOS LUBRIFICANTES FERROVIÁRIOS'})
+	Aadd(aRetCodAnp,{'620301001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES MARÍTIMOS ÓLEOS LUBRIFICANTES MARÍTIMOS ÓLEOS LUBRIFICANTES MARÍTIMOS'})
+	Aadd(aRetCodAnp,{'620201001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES PARA AVIAÇÃO ÓLEOS LUBRIFICANTES PARA AVIAÇÃO ÓLEOS LUBRIFICANTES PARA AVIAÇÃO'})
+	Aadd(aRetCodAnp,{'630101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES USADOS OU CONTAMINADOS ÓLEOS LUBRIFICANTES USADOS OU CONTAMINADOS ÓLEOS LUBRIFICANTES USADOS OU CONTAMINADOS ÓLEOS LUBRIFICANTES USADOS OU CONTAMINADOS'})
+	Aadd(aRetCodAnp,{'611207004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO ÓLEOS VEGETAIS'})
+	Aadd(aRetCodAnp,{'110202006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE OLMECA'})
+	Aadd(aRetCodAnp,{'110203093','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA OLOWI'})
+	Aadd(aRetCodAnp,{'110204035','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO OMAN'})
+	Aadd(aRetCodAnp,{'110203049','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ORIBI'})
+	Aadd(aRetCodAnp,{'110201044','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ORIENTE'})
+	Aadd(aRetCodAnp,{'110201045','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ORITO'})
+	Aadd(aRetCodAnp,{'110206012','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS OSEBERG'})
+	Aadd(aRetCodAnp,{'120203003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁFRICA OSO'})
+	Aadd(aRetCodAnp,{'110101052','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS OSTRA'})
+	Aadd(aRetCodAnp,{'320301001','DERIVADOS LEVES GASOLINAS OUTRAS GASOLINAS OUTRAS GASOLINAS OUTRAS GASOLINAS'})
+	Aadd(aRetCodAnp,{'320103002','DERIVADOS LEVES GASOLINAS GASOLINAS AUTOMOTIVAS OUTRAS GASOLINAS AUTOMOTIVAS OUTRAS GASOLINAS AUTOMOTIVAS'})
+	Aadd(aRetCodAnp,{'650101002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS GRAXAS GRAXAS GRAXAS OUTRAS GRAXAS'})
+	Aadd(aRetCodAnp,{'140201004','INSUMO BRUTO RENOVAVEIS ETANOL MATÉRIA - PRIMA DE 1ª GERAÇÃO OUTRAS MATÉRIAS - PRIMAS'})
+	Aadd(aRetCodAnp,{'310102002','DERIVADOS LEVES NAFTA NAFTA OUTRAS NAFTAS OUTRAS NAFTAS'})
+	Aadd(aRetCodAnp,{'640401001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS PARAFINAS OUTRAS PARAFINAS OUTRAS PARAFINAS OUTRAS PARAFINAS'})
+	Aadd(aRetCodAnp,{'610907001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API OUTRO OUTRO'})
+	Aadd(aRetCodAnp,{'610814001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API OUTRO OUTRO'})
+	Aadd(aRetCodAnp,{'611107001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API OUTRO OUTRO'})
+	Aadd(aRetCodAnp,{'611007001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API OUTRO OUTRO'})
+	Aadd(aRetCodAnp,{'611207006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO OUTRO'})
+	Aadd(aRetCodAnp,{'140101029','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS OUTROS ÁCIDOS GRAXOS'})
+	Aadd(aRetCodAnp,{'740101003','SUBPRODUTOS OU ADITIVOS ADITIVOS ADITIVOS ADITIVOS OUTROS ADITIVOS'})
+	Aadd(aRetCodAnp,{'810201002','COMBUSTÍVEIS ALTERNATIVOS ÁLCOOL OUTROS ALCOÓIS OUTROS ALCOÓIS OUTROS ALCOÓIS'})
+	Aadd(aRetCodAnp,{'530103001','DERIVADOS PESADOS ASFALTOS ASFALTOS OUTROS ASFALTOS OUTROS ASFALTOS'})
+	Aadd(aRetCodAnp,{'340101003','DERIVADOS LEVES OUTROS DERIVADOS LEVES OUTROS DERIVADOS LEVES OUTROS DERIVADOS LEVES OUTROS DERIVADOS LEVES'})
+	Aadd(aRetCodAnp,{'430101003','DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS OUTROS DERIVADOS MÉDIOS'})
+	Aadd(aRetCodAnp,{'560101003','DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS OUTROS DERIVADOS PESADOS'})
+	Aadd(aRetCodAnp,{'611207001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO OUTROS ÉSTERES SINTÉTICOS'})
+	Aadd(aRetCodAnp,{'210302001','GASES GASES OUTROS GASES OUTROS GASES OUTROS GASES'})
+	Aadd(aRetCodAnp,{'210204002','GASES GASES GASES LIQUEFEITOS OUTROS GASES LIQUEFEITOS OUTROS GASES LIQUEFEITOS'})
+	Aadd(aRetCodAnp,{'130201001','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS'})
+	Aadd(aRetCodAnp,{'530104001','DERIVADOS PESADOS ASFALTOS ASFALTOS INSUMOS NÃO REGULADOS OUTROS INSUMOS PARA ASFALTOS'})
+	Aadd(aRetCodAnp,{'140101022','INSUMO BRUTO RENOVAVEIS BIODIESEL MATERIAIS GRAXOS OUTROS MATERIAIS GRAXOS'})
+	Aadd(aRetCodAnp,{'610201004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS NAFTÊNICOS NAFTÊNICOS - GRUPO V OUTROS NAFTÊNICOS'})
+	Aadd(aRetCodAnp,{'510301001','DERIVADOS PESADOS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS OUTROS ÓLEOS COMBUSTÍVEIS'})
+	Aadd(aRetCodAnp,{'420301002','DERIVADOS MÉDIOS ÓLEO DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL OUTROS ÓLEOS DIESEL'})
+	Aadd(aRetCodAnp,{'620601004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS OUTROS ÓLEOS LUBRIFICANTES ACABADOS'})
+	Aadd(aRetCodAnp,{'620505001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS OUTROS ÓLEOS LUBRIFICANTES AUTOMOTIVOS OUTROS ÓLEOS LUBRIFICANTES AUTOMOTIVOS'})
+	Aadd(aRetCodAnp,{'610501001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS OUTROS ÓLEOS LUBRIFICANTES BÁSICOS OUTROS ÓLEOS LUBRIFICANTES BÁSICOS - GRUPO VI OUTROS ÓLEOS LUBRIFICANTES BÁSICOS'})
+	Aadd(aRetCodAnp,{'620101008','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS OUTROS ÓLEOS LUBRIFICANTES INDUSTRIAIS'})
+	Aadd(aRetCodAnp,{'610101010','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I OUTROS PARAFÍNICOS'})
+	Aadd(aRetCodAnp,{'110208002','INSUMO BRUTO PETRÓLEO IMPORTADO OUTROS PETRÓLEOS IMPORTADOS OUTROS PETRÓLEOS IMPORTADOS'})
+	Aadd(aRetCodAnp,{'110110002','INSUMO BRUTO PETRÓLEO NACIONAL OUTROS PETRÓLEOS NACIONAIS OUTROS PETRÓLEOS NACIONAIS'})
+	Aadd(aRetCodAnp,{'130202008','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO OUTROS PRODUTOS PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'410103001','DERIVADOS MÉDIOS QUEROSENES QUEROSENES OUTROS QUEROSENES OUTROS QUEROSENES'})
+	Aadd(aRetCodAnp,{'610302001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS SINTÉTICOS SINTÉTICOS - GRUPO V OUTROS SINTÉTICOS'})
+	Aadd(aRetCodAnp,{'330101007','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS OUTROS SOLVENTES ALIFÁTICOS'})
+	Aadd(aRetCodAnp,{'330201009','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS OUTROS SOLVENTES AROMÁTICOS'})
+	Aadd(aRetCodAnp,{'730101001','SUBPRODUTOS OU ADITIVOS OUTROS SUB-PRODUTOS OUTROS SUB-PRODUTOS OUTROS SUB-PRODUTOS OUTROS SUB-PRODUTOS'})
+	Aadd(aRetCodAnp,{'110205033','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA OYONG'})
+	Aadd(aRetCodAnp,{'110203050','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA PALANCA'})
+	Aadd(aRetCodAnp,{'110101028','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PAMPO'})
+	Aadd(aRetCodAnp,{'611106002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API INEOS/EUA PAO 4'})
+	Aadd(aRetCodAnp,{'611103001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILIPS/EUA PAO 4'})
+	Aadd(aRetCodAnp,{'611104001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEMTURA/EUA PAO 40'})
+	Aadd(aRetCodAnp,{'611106003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API INEOS/EUA PAO 6'})
+	Aadd(aRetCodAnp,{'611101007','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA PAO 8'})
+	Aadd(aRetCodAnp,{'611106001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API INEOS/EUA PAO 8'})
+	Aadd(aRetCodAnp,{'110101049','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PAPATERRA'})
+	Aadd(aRetCodAnp,{'110101029','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PARATI'})
+	Aadd(aRetCodAnp,{'110101030','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PARGO'})
+	Aadd(aRetCodAnp,{'110104007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO PARQUE DAS CONCHAS'})
+	Aadd(aRetCodAnp,{'110111001','INSUMO BRUTO PETRÓLEO NACIONAL TERRA BAHIA CATU PAU LAVADO'})
+	Aadd(aRetCodAnp,{'110203102','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA PAZFLOR'})
+	Aadd(aRetCodAnp,{'610809002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PBS 30'})
+	Aadd(aRetCodAnp,{'610809001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PBS 33'})
+	Aadd(aRetCodAnp,{'610809003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PCL 45'})
+	Aadd(aRetCodAnp,{'610809004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PCL 60'})
+	Aadd(aRetCodAnp,{'120205006','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA PEMBINA'})
+	Aadd(aRetCodAnp,{'110205032','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA PENARA BLEND'})
+	Aadd(aRetCodAnp,{'110203051','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA PENNINGTON'})
+	Aadd(aRetCodAnp,{'110101050','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PEREGRINO'})
+	Aadd(aRetCodAnp,{'110201065','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL PERENCO PERU BLEND'})
+	Aadd(aRetCodAnp,{'110105028','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR PERIQUITO'})
+	Aadd(aRetCodAnp,{'110104010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO ESPÍRITO SANTO PEROA'})
+	Aadd(aRetCodAnp,{'110105016','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR PESCADA/ARABAIANA'})
+	Aadd(aRetCodAnp,{'110209006','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO ASFÁLTICO (API < 15)'})
+	Aadd(aRetCodAnp,{'110209001','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO EXTRALEVE (API > 40)'})
+	Aadd(aRetCodAnp,{'110209005','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO EXTRAPESADO (15 < API < 19)'})
+	Aadd(aRetCodAnp,{'110209002','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO LEVE (33 < API < 40)'})
+	Aadd(aRetCodAnp,{'110209003','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO  MÉDIO (27 < API < 33)'})
+	Aadd(aRetCodAnp,{'110209004','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS IMPORTADOS PETRÓLEO IMPORTADO PESADO (19 < API < 27)'})
+	Aadd(aRetCodAnp,{'611204001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API BRASKEN/BRASIL PIB 24 - POLIBUTENO'})
+	Aadd(aRetCodAnp,{'110201046','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL PILON'})
+	Aadd(aRetCodAnp,{'110106007','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE PIRANEMA'})
+	Aadd(aRetCodAnp,{'110101031','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS PIRAUNA'})
+	Aadd(aRetCodAnp,{'611207005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API OUTRO PLIGLICÓIS'})
+	Aadd(aRetCodAnp,{'110207008','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA OCEANIA PLUTO CONDENSADO'})
+	Aadd(aRetCodAnp,{'110203082','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA PLUTONIO'})
+	Aadd(aRetCodAnp,{'610809005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PNL 30'})
+	Aadd(aRetCodAnp,{'610809006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PNM 55'})
+	Aadd(aRetCodAnp,{'610809007','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PNM 80'})
+	Aadd(aRetCodAnp,{'610809008','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PNP 95'})
+	Aadd(aRetCodAnp,{'610301001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS SINTÉTICOS SINTÉTICOS - GRUPO IV POLIALFAOLEFINA'})
+	Aadd(aRetCodAnp,{'110101032','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS POLO NORDESTE'})
+	Aadd(aRetCodAnp,{'110101047','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS POLVO'})
+	Aadd(aRetCodAnp,{'110105021','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR POTI'})
+	Aadd(aRetCodAnp,{'110105010','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR POTIGUAR TERRA'})
+	Aadd(aRetCodAnp,{'611206001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API CRODA DO BRASIL/BRASIL PRIOLUBE 3970 - ÉSTER'})
+	Aadd(aRetCodAnp,{'611206002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API CRODA DO BRASIL/BRASIL PRIOLUBE 3999 - ÉSTER'})
+	Aadd(aRetCodAnp,{'620101003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS PROCESSO'})
+	Aadd(aRetCodAnp,{'210201001','GASES GASES GASES LIQUEFEITOS C3 PROPANO'})
+	Aadd(aRetCodAnp,{'210203003','GASES GASES GASES LIQUEFEITOS GASES LIQUEFEITO DE PETRÓLEO - GLP PROPANO COMERCIAL'})
+	Aadd(aRetCodAnp,{'210201002','GASES GASES GASES LIQUEFEITOS C3 PROPANO ESPECIAL'})
+	Aadd(aRetCodAnp,{'210203004','GASES GASES GASES LIQUEFEITOS GASES LIQUEFEITO DE PETRÓLEO - GLP PROPANO ESPECIAL'})
+	Aadd(aRetCodAnp,{'210201003','GASES GASES GASES LIQUEFEITOS C3 PROPENO'})
+	Aadd(aRetCodAnp,{'610809009','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PSP 09'})
+	Aadd(aRetCodAnp,{'610809010','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PTL 25'})
+	Aadd(aRetCodAnp,{'610809011','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROBRÁS/BRASIL PTP 85'})
+	Aadd(aRetCodAnp,{'110105020','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR PTX'})
+	Aadd(aRetCodAnp,{'110105022','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR PTX-11'})
+	Aadd(aRetCodAnp,{'110205012','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA PULAI'})
+	Aadd(aRetCodAnp,{'620601002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES ACABADOS PULVERIZAÇÃO AGRÍCOLA'})
+	Aadd(aRetCodAnp,{'120206003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA EUROPA E EX-URSS PUROVSKY'})
+	Aadd(aRetCodAnp,{'110204036','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO QATAR DUKHAN'})
+	Aadd(aRetCodAnp,{'110204037','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO QATAR LAND'})
+	Aadd(aRetCodAnp,{'110204038','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO QATAR MARINE'})
+	Aadd(aRetCodAnp,{'110203101','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA QUARUN'})
+	Aadd(aRetCodAnp,{'410101001','DERIVADOS MÉDIOS QUEROSENES QUEROSENES QUEROSENES DE AVIAÇÃO QUEROSENE DE AVIAÇÃO'})
+	Aadd(aRetCodAnp,{'410101002','DERIVADOS MÉDIOS QUEROSENES QUEROSENES QUEROSENES DE AVIAÇÃO QUEROSENE DE AVIAÇÃO FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'410102001','DERIVADOS MÉDIOS QUEROSENES QUEROSENES QUEROSENES ILUMINANTES QUEROSENE ILUMINANTE'})
+	Aadd(aRetCodAnp,{'410102002','DERIVADOS MÉDIOS QUEROSENES QUEROSENES QUEROSENES ILUMINANTES QUEROSENE ILUMINANTE FORA DE ESPECIFICAÇÃO'})
+	Aadd(aRetCodAnp,{'850101001','COMBUSTÍVEIS ALTERNATIVOS QUEROSENE ALTERNATIVO QUEROSENE ALTERNATIVO QUEROSENE DE AVIAÇÃO ALTERNATIVO Querosene parafínico sintetizado hidroprocessado por Fischer-Tropsch (SPK-FT)'})
+	Aadd(aRetCodAnp,{'110103014','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO QUIAMBINA'})
+	Aadd(aRetCodAnp,{'110203052','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA RABI'})
+	Aadd(aRetCodAnp,{'330101005','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS RAFINADO DE PIRÓLISE'})
+	Aadd(aRetCodAnp,{'330101006','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS RAFINADO DE REFORMA'})
+	Aadd(aRetCodAnp,{'110205029','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA RANG DONG'})
+	Aadd(aRetCodAnp,{'110203053','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA RAS BUDRAN'})
+	Aadd(aRetCodAnp,{'120204008','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO RAS GAS'})
+	Aadd(aRetCodAnp,{'110203054','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA RAS GHARIB'})
+	Aadd(aRetCodAnp,{'110204039','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO RATAWI'})
+	Aadd(aRetCodAnp,{'110201047','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL RECON BOLIVIANO'})
+	Aadd(aRetCodAnp,{'110201048','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL RECON MEREY'})
+	Aadd(aRetCodAnp,{'110103011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO RECÔNCAVO'})
+	Aadd(aRetCodAnp,{'550101001','DERIVADOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUO AROMÁTICO (RARO)'})
+	Aadd(aRetCodAnp,{'550101005','DERIVADOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUO ASFÁLTICO(RASF)'})
+	Aadd(aRetCodAnp,{'550101002','DERIVADOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUO ATMOSFÉRICO (RAT)'})
+	Aadd(aRetCodAnp,{'550101003','DERIVADOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUO DE VÁCUO'})
+	Aadd(aRetCodAnp,{'550101004','DERIVADOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUOS PESADOS RESÍDUO DE VÁCUO DE ALTO TEOR DE ENXOGRE'})
+	Aadd(aRetCodAnp,{'130202007','INSUMO BRUTO OUTROS INSUMOS BRUTOS OUTROS INSUMOS BRUTOS PRODUTOS PARA REPROCESSAMENTO RESÍDUO PARA REPROCESSAMENTO'})
+	Aadd(aRetCodAnp,{'110105011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR RGN MISTURA'})
+	Aadd(aRetCodAnp,{'110105032','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR RIACHO TAPUIO'})
+	Aadd(aRetCodAnp,{'110201049','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL RINCÓN DE LOS SAUCES'})
+	Aadd(aRetCodAnp,{'110101048','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS RJS-609'})
+	Aadd(aRetCodAnp,{'110105031','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR ROLINHA'})
+	Aadd(aRetCodAnp,{'110101033','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS RONCADOR'})
+	Aadd(aRetCodAnp,{'110101040','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS RONCADOR LESTE'})
+	Aadd(aRetCodAnp,{'110101045','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS RONCADOR MISTURA'})
+	Aadd(aRetCodAnp,{'110101041','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS RONCADOR OESTE'})
+	Aadd(aRetCodAnp,{'110204040','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ROSTAM'})
+	Aadd(aRetCodAnp,{'110105019','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR RT'})
+	Aadd(aRetCodAnp,{'110205030','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA RUBY'})
+	Aadd(aRetCodAnp,{'110204041','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO RUMAILA'})
+	Aadd(aRetCodAnp,{'110105024','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR RV-1'})
+	Aadd(aRetCodAnp,{'110105036','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR SABIA BICO DE OSSO'})
+	Aadd(aRetCodAnp,{'110105035','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR SABIA DA MATA'})
+	Aadd(aRetCodAnp,{'110203070','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SABLE CRUDE OIL'})
+	Aadd(aRetCodAnp,{'110203055','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SAHARA MISTURA'})
+	Aadd(aRetCodAnp,{'110101053','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS SALEMA'})
+	Aadd(aRetCodAnp,{'110204042','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SALMAN'})
+	Aadd(aRetCodAnp,{'110203075','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SALTPOND'})
+	Aadd(aRetCodAnp,{'110201050','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SAN SEBASTIAN'})
+	Aadd(aRetCodAnp,{'110201051','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SANTA BARBARA'})
+	Aadd(aRetCodAnp,{'110201052','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SANTA CRUZ'})
+	Aadd(aRetCodAnp,{'110201053','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SANTA CRUZ DO SUL'})
+	Aadd(aRetCodAnp,{'120201002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA AMÉRICA DO SUL SANTA ROSA'})
+	Aadd(aRetCodAnp,{'110105029','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR SÃO MANOEL'})
+	Aadd(aRetCodAnp,{'110107011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS SAPINHOA'})
+	Aadd(aRetCodAnp,{'110203056','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SARIR'})
+	Aadd(aRetCodAnp,{'110204043','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SARKHOON'})
+	Aadd(aRetCodAnp,{'110203103','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SATURNO BLEND'})
+	Aadd(aRetCodAnp,{'110203090','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SAXI BLEND'})
+	Aadd(aRetCodAnp,{'110103018','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO SEMPRE VIVA'})
+	Aadd(aRetCodAnp,{'110106004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE SERGIPANO MAR'})
+	Aadd(aRetCodAnp,{'110106005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE SERGIPANO MISTURA'})
+	Aadd(aRetCodAnp,{'110106006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE SERGIPANO TERRA'})
+	Aadd(aRetCodAnp,{'110205028','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA SERIA LIGHT'})
+	Aadd(aRetCodAnp,{'110105012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR SERRARIA'})
+	Aadd(aRetCodAnp,{'120204005','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO SHARJAH'})
+	Aadd(aRetCodAnp,{'110205013','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA SHENGLI'})
+	Aadd(aRetCodAnp,{'110201054','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SHIVIYACU'})
+	Aadd(aRetCodAnp,{'110101044','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS SIRI'})
+	Aadd(aRetCodAnp,{'110204044','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SIRRI'})
+	Aadd(aRetCodAnp,{'110203057','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SIRTICA'})
+	Aadd(aRetCodAnp,{'110203058','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SKIKDA'})
+	Aadd(aRetCodAnp,{'120206002','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA EUROPA E EX-URSS SLEIPNER'})
+	Aadd(aRetCodAnp,{'610805002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API ENI SPA./ITÁLIA SN 150'})
+	Aadd(aRetCodAnp,{'610803001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API CEPSA LUBRIFICANTES/ESPANHA SN 150'})
+	Aadd(aRetCodAnp,{'610812002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA SN 150'})
+	Aadd(aRetCodAnp,{'610811002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API REPSOL YPF/ESPANHA SN 150'})
+	Aadd(aRetCodAnp,{'610806001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA SN 150'})
+	Aadd(aRetCodAnp,{'610807001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API HAIFA/ISRAEL SN 150'})
+	Aadd(aRetCodAnp,{'610810001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROGAL/PORTUGAL SN 150'})
+	Aadd(aRetCodAnp,{'610806004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA SN 275'})
+	Aadd(aRetCodAnp,{'610812003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA SN 330'})
+	Aadd(aRetCodAnp,{'610806005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA SN 330'})
+	Aadd(aRetCodAnp,{'610811003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API REPSOL YPF/ESPANHA SN 500'})
+	Aadd(aRetCodAnp,{'610810002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API PETROGAL/PORTUGAL SN 500'})
+	Aadd(aRetCodAnp,{'610807002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API HAIFA/ISRAEL SN 500'})
+	Aadd(aRetCodAnp,{'610805003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API ENI SPA./ITÁLIA SN 500'})
+	Aadd(aRetCodAnp,{'610812004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA SN 500'})
+	Aadd(aRetCodAnp,{'610806002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API EXXON MOBIL/EUA SN 600'})
+	Aadd(aRetCodAnp,{'610812005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA SN 600'})
+	Aadd(aRetCodAnp,{'610812006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API TOTAL LUBRICANTS/FRANÇA SN 85'})
+	Aadd(aRetCodAnp,{'120206004','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA EUROPA E EX-URSS SNOHVIT'})
+	Aadd(aRetCodAnp,{'330101004','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES ALIFÁTICOS SOLVENTE PARA BORRACHA'})
+	Aadd(aRetCodAnp,{'110204045','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SORROSH'})
+	Aadd(aRetCodAnp,{'110204046','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SOUEDIA'})
+	Aadd(aRetCodAnp,{'110201063','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL SOUTH BLEND'})
+	Aadd(aRetCodAnp,{'110204055','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SOUTHERN PARS'})
+	Aadd(aRetCodAnp,{'110206013','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS SOVIET EXPORT BLEND'})
+	Aadd(aRetCodAnp,{'110203059','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SOYO'})
+	Aadd(aRetCodAnp,{'110203060','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA SOYO 38'})
+	Aadd(aRetCodAnp,{'611101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 100'})
+	Aadd(aRetCodAnp,{'611101002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 2'})
+	Aadd(aRetCodAnp,{'611101003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 4'})
+	Aadd(aRetCodAnp,{'611101004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 40'})
+	Aadd(aRetCodAnp,{'611101005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 6'})
+	Aadd(aRetCodAnp,{'611101006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API EXXON MOBIL/EUA SPECTRASYN 8'})
+	Aadd(aRetCodAnp,{'610101001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I SPINDLE'})
+	Aadd(aRetCodAnp,{'610401001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS RERREFINADOS RERREFINADOS SPINDLE RR'})
+	Aadd(aRetCodAnp,{'610906001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API LWART/BRASIL SPINDLE RR'})
+	Aadd(aRetCodAnp,{'610813001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO I - CLASSIFICAÇÃO API RERREFINADOR/BRASIL SPINDLE RR'})
+	Aadd(aRetCodAnp,{'611203001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API NYNAS/FINLÂNDIA SR 130 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'610905002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API MOTIVA/EUA STAR 10'})
+	Aadd(aRetCodAnp,{'610905003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API MOTIVA/EUA STAR 12'})
+	Aadd(aRetCodAnp,{'610905004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API MOTIVA/EUA STAR 4'})
+	Aadd(aRetCodAnp,{'610905005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API MOTIVA/EUA STAR 6'})
+	Aadd(aRetCodAnp,{'110206015','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS STATFJORD'})
+	Aadd(aRetCodAnp,{'110206014','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS STATFJORD LOW SULFUR'})
+	Aadd(aRetCodAnp,{'110204052','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SUEDIE'})
+	Aadd(aRetCodAnp,{'110205015','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA SUMATRAN HEAVY'})
+	Aadd(aRetCodAnp,{'110205014','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA SUMATRAN LIGHT'})
+	Aadd(aRetCodAnp,{'611105001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILLIPS/EUA SYNFLUID PAO 100'})
+	Aadd(aRetCodAnp,{'611105002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILLIPS/EUA SYNFLUID PAO 4'})
+	Aadd(aRetCodAnp,{'611105003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILLIPS/EUA SYNFLUID PAO 40'})
+	Aadd(aRetCodAnp,{'611105004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILLIPS/EUA SYNFLUID PAO 6'})
+	Aadd(aRetCodAnp,{'611105005','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO IV - CLASSIFICAÇÃO API CHEVRON PHILLIPS/EUA SYNFLUID PAO 8'})
+	Aadd(aRetCodAnp,{'110204047','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO SYRIAN LIGHT'})
+	Aadd(aRetCodAnp,{'611203003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API NYNAS/FINLÂNDIA T 9 - NAFTÊNICO'})
+	Aadd(aRetCodAnp,{'110106011','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE TABULEIRO'})
+	Aadd(aRetCodAnp,{'110205016','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA TACHING'})
+	Aadd(aRetCodAnp,{'110203061','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA TAKULA'})
+	Aadd(aRetCodAnp,{'110205017','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA TAPIS'})
+	Aadd(aRetCodAnp,{'110204054','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO TAQ TAQ'})
+	Aadd(aRetCodAnp,{'110106009','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE TARTARUGA'})
+	Aadd(aRetCodAnp,{'110101057','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS TARTARUGA VERDE'})
+	Aadd(aRetCodAnp,{'110203062','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA TCHATAMBA'})
+	Aadd(aRetCodAnp,{'110206016','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS TENGIZ'})
+	Aadd(aRetCodAnp,{'120205007','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA TERENGANU'})
+	Aadd(aRetCodAnp,{'120201003','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA AMÉRICA DO SUL TERRA DEL FUEGO'})
+	Aadd(aRetCodAnp,{'620101006','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES INDUSTRIAIS ÓLEOS LUBRIFICANTES INDUSTRIAIS TÊXTIL / AMACIANTE DE FIBRAS'})
+	Aadd(aRetCodAnp,{'120205008','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA ÁSIA THAI'})
+	Aadd(aRetCodAnp,{'120204006','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO THAMAMA'})
+	Aadd(aRetCodAnp,{'110201055','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL TIA JUANA'})
+	Aadd(aRetCodAnp,{'110201056','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL TIA JUANA MEDIO'})
+	Aadd(aRetCodAnp,{'110201057','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL TIA JUANA PESADO'})
+	Aadd(aRetCodAnp,{'110103020','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO TICO-TICO'})
+	Aadd(aRetCodAnp,{'110103024','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO TIÊ'})
+	Aadd(aRetCodAnp,{'110103016','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO TIGRE'})
+	Aadd(aRetCodAnp,{'110106012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE TIGRE'})
+	Aadd(aRetCodAnp,{'110205018','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA TIONG'})
+	Aadd(aRetCodAnp,{'110107005','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS TIRO'})
+	Aadd(aRetCodAnp,{'330201002','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS TOLUENO'})
+	Aadd(aRetCodAnp,{'620504001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS TRANSMISSÃO AUTOMÁTICA TRANSMISSÃO AUTOMÁTICA'})
+	Aadd(aRetCodAnp,{'620503001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES ACABADOS ÓLEOS LUBRIFICANTES AUTOMOTIVOS TRANSMISSÕES E SISTEMAS HIDRÁULICOS TRANSMISSÕES E SISTEMAS HIDRÁULICOS'})
+	Aadd(aRetCodAnp,{'110101034','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS TRILHA'})
+	Aadd(aRetCodAnp,{'110103023','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO TROVOADA'})
+	Aadd(aRetCodAnp,{'110101055','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS TUBARÃO AZUL'})
+	Aadd(aRetCodAnp,{'110101056','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS TUBARÃO MARTELO'})
+	Aadd(aRetCodAnp,{'110107004','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS TUPI'})
+	Aadd(aRetCodAnp,{'610101007','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I TURBINA LEVE'})
+	Aadd(aRetCodAnp,{'610101008','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS PARAFÍNICOS PARAFÍNICOS - GRUPO I TURBINA PESADO'})
+	Aadd(aRetCodAnp,{'110105014','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR UBARANA/AGULHA'})
+	Aadd(aRetCodAnp,{'110205019','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA UDANG'})
+	Aadd(aRetCodAnp,{'110103012','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO RECÔNCAVO UIRAPURU'})
+	Aadd(aRetCodAnp,{'110203063','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA UKPOKITI'})
+	Aadd(aRetCodAnp,{'611004001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API S OIL/COREIA DO SUL ULTRA-S 2'})
+	Aadd(aRetCodAnp,{'611004002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API S OIL/COREIA DO SUL ULTRA-S 4'})
+	Aadd(aRetCodAnp,{'611004003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API S OIL/COREIA DO SUL ULTRA-S 6'})
+	Aadd(aRetCodAnp,{'611004004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API S OIL/COREIA DO SUL ULTRA-S 8'})
+	Aadd(aRetCodAnp,{'120204007','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DO ORIENTE MÉDIO UMM SAIF'})
+	Aadd(aRetCodAnp,{'110204048','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO UMM SHAIF'})
+	Aadd(aRetCodAnp,{'110105013','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR UPANEMA'})
+	Aadd(aRetCodAnp,{'110204049','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO UPPER ZAKUM'})
+	Aadd(aRetCodAnp,{'110206017','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS URAL'})
+	Aadd(aRetCodAnp,{'110109001','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO SOLIMÕES URUCU'})
+	Aadd(aRetCodAnp,{'110107006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE SANTOS URUGUA-TAMBAU'})
+	Aadd(aRetCodAnp,{'110203100','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA USAN BLEND'})
+	Aadd(aRetCodAnp,{'110206027','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS VARANDEY'})
+	Aadd(aRetCodAnp,{'120207006','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA VARANUS'})
+	Aadd(aRetCodAnp,{'110201059','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL VASCONIA BLEND'})
+	Aadd(aRetCodAnp,{'110201058','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL VASCONIA 29,3'})
+	Aadd(aRetCodAnp,{'640301001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS PARAFINAS VASELINA VASELINA VASELINA'})
+	Aadd(aRetCodAnp,{'110101035','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS VERMELHO'})
+	Aadd(aRetCodAnp,{'611002001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETROCANADA/CANADA VHVI 4'})
+	Aadd(aRetCodAnp,{'611002002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETROCANADA/CANADA VHVI 6'})
+	Aadd(aRetCodAnp,{'611002003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API PETROCANADA/CANADA VHVI 8'})
+	Aadd(aRetCodAnp,{'110101036','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS VIOLA'})
+	Aadd(aRetCodAnp,{'611205001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO V - CLASSIFICAÇÃO API INFINEUM BRASIL/BRASIL VISTONE A-10 - ÉSTER'})
+	Aadd(aRetCodAnp,{'110206022','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS VITYAZ'})
+	Aadd(aRetCodAnp,{'110101037','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE CAMPOS VOADOR'})
+	Aadd(aRetCodAnp,{'110202010','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO NORTE & CARIBE WHITE ROSE'})
+	Aadd(aRetCodAnp,{'110205020','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA WIDURI'})
+	Aadd(aRetCodAnp,{'120207005','INSUMO BRUTO CONDENSADO IMPORTADO CONDENSADOS DA OCEANIA WOOLLYBUTT CRUDE'})
+	Aadd(aRetCodAnp,{'110206018','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS WYTCH FARM'})
+	Aadd(aRetCodAnp,{'110108006','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DO CEARÁ XAREU/ATUM'})
+	Aadd(aRetCodAnp,{'611005001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API SHELL/QATAR XHVI 4'})
+	Aadd(aRetCodAnp,{'611005002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API SHELL/QATAR XHVI 8'})
+	Aadd(aRetCodAnp,{'110203076','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA XICOMBA'})
+	Aadd(aRetCodAnp,{'110205021','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁSIA XIJIANG'})
+	Aadd(aRetCodAnp,{'330201003','DERIVADOS LEVES SOLVENTES SOLVENTES SOLVENTES AROMÁTICOS XILENOS'})
+	Aadd(aRetCodAnp,{'130101001','INSUMO BRUTO OUTROS INSUMOS BRUTOS XISTO XISTO XISTO BRUTO'})
+	Aadd(aRetCodAnp,{'110201060','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL YANAYACU'})
+	Aadd(aRetCodAnp,{'110203071','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA YOHO'})
+	Aadd(aRetCodAnp,{'611006001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API SK/COREIA DO SUL YUBASE 3'})
+	Aadd(aRetCodAnp,{'611006002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API SK/COREIA DO SUL YUBASE 4'})
+	Aadd(aRetCodAnp,{'611006003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO III - CLASSIFICAÇÃO API SK/COREIA DO SUL YUBASE 6'})
+	Aadd(aRetCodAnp,{'110203065','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ZAFIRO'})
+	Aadd(aRetCodAnp,{'110203064','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ZAIRE'})
+	Aadd(aRetCodAnp,{'110206026','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA EUROPA E EX-URSS ZAKINSKAYA'})
+	Aadd(aRetCodAnp,{'110204050','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DO ORIENTE MÉDIO ZAKUM'})
+	Aadd(aRetCodAnp,{'110203066','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ZARZAITINE'})
+	Aadd(aRetCodAnp,{'110203067','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ZEIT BAY'})
+	Aadd(aRetCodAnp,{'110201061','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA AMÉRICA DO SUL ZUATA'})
+	Aadd(aRetCodAnp,{'110203068','INSUMO BRUTO PETRÓLEO IMPORTADO PETRÓLEOS DA ÁFRICA ZUEITINA'})
+	Aadd(aRetCodAnp,{'110105026','INSUMO BRUTO PETRÓLEO NACIONAL BACIA POTIGUAR 1-FAC-2-RN'})
+	Aadd(aRetCodAnp,{'110106008','INSUMO BRUTO PETRÓLEO NACIONAL BACIA DE ALAGOAS/SERGIPE 1-WW-1-BA'})
+	Aadd(aRetCodAnp,{'610902001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API PHILIPS 66/EUA 100N'})
+	Aadd(aRetCodAnp,{'610901001','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API CHEVRON/EUA 100R'})
+	Aadd(aRetCodAnp,{'610901002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API CHEVRON/EUA 150R'})
+	Aadd(aRetCodAnp,{'610901003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API CHEVRON/EUA 220R'})
+	Aadd(aRetCodAnp,{'610902002','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API PHILIPS 66/EUA 225N'})
+	Aadd(aRetCodAnp,{'610902003','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API PHILIPS 66/EUA 600N'})
+	Aadd(aRetCodAnp,{'610901004','ÓLEOS LUBRIFICANTES, PARAFINAS E GRAXAS ÓLEOS LUBRIFICANTES BÁSICOS GRUPO II - CLASSIFICAÇÃO API CHEVRON/EUA 600R'})
+		
+Return aRetCodAnp 
+
+
+Static Function sfSPEDRastro(cProduto,nBaseIcm,nValICM,nQtd,nAliqIcm,nBfcpant,nAfcpant,nVfcpant,nValSubst) 
+	Local 	aArea		:= GetArea()
+	Local	cQry 		:= " "
+	Local	cRow		:= ""
+	Local 	aDadAux 	:= {0/*nBaseIcm*/,0/*nValICM*/,0/*nValSubst*/,0/*nAliqIcm*/,0/*nBfcpant*/,0/*nAfcpant*/,0/*nVfcpant*/,0/*nD1Quant*/}
+	
+	If nBaseIcm==0 .AND. nValICM==0   
+
+
+		cQry += "SELECT TOP 10 * FROM (SELECT D1.R_E_C_N_O_ AS REG "
+		cQry += "  FROM "+RetSqlName("SD1") + " D1, " + RetSqlName("SF4") + " F4 "
+		cQry += " WHERE F4.D_E_L_E_T_ = ' ' "
+		cQry += "   AND F4_ESTOQUE = 'S' "
+		cQry += "   AND F4_CODIGO = D1_TES "
+		cQry += "   AND F4_FILIAL = '" + xFilial("SF4") + "'" 
+		cQry += "   AND D1.D_E_L_E_T_ = ' ' "
+		cQry += "   AND D1_COD =  '" + cProduto + "' "
+		//cQry += "   AND D1_CF IN ('2652','2403','1652','1403','1910','2910','1926','1949','2949','1152') "
+		cQry += "   AND (D1_BRICMS+D1_XBRICMS+D1_BASNDES) > 0 "
+		cQry += "   AND D1_QUANT > 0 "
+		cQry += "   AND D1_TIPO IN('N','I') "
+		cQry += "   AND D1_DTDIGIT BETWEEN '" +DTOS(dDataBase - 360 * 5 ) + "' AND '" + DTOS(dDataBase) + "' " 
+		cQry += "   AND D1_FILIAL = '" + xFilial("SD1") + "') TBL "
+		cQry += " ORDER BY 1 DESC "
+
+		dbUseArea(.T.,"TOPCONN", TCGenQry(,,cQry), "QRY", .F., .T.)
+		cRow := ""
+		While !Eof()
+			cRow += "'" + AllTrim(Str(QRY->REG)) + "',"
+			dbSelectArea("QRY")
+			dbSkip()
+		End
+		QRY->(DbCloseArea())
+
+		If !Empty(cRow)
+
+			cRow := Substr(cRow,1,Len(cRow)-1)
+
+			cQry := ""
+			cQry += "SELECT (D1_BRICMS+D1_XBRICMS+D1_BASNDES) AS BASE,"
+			cQry += "       (D1_ICMSRET+D1_XIMCRET+D1_ICMNDES) VALOR,"
+			cQry += "       D1_VALICM  ICMS_SUBST,"
+			cQry += "       D1_BSFCPST BAS_FECP_ST,"
+			cQry += "       D1_ALFCPST ALQ_FECP_ST,"
+			cQry += "       D1_VFECPST VLR_FECP_ST,"
+			cQry += "       D1_ALIQSOL ALIQSOL, "
+			cQry += "       D1_ALQNDES ALIQNDES, "
+			cQry += "       D1_QUANT "
+			cQry += "  FROM "+ RetSqlName("SD1")
+			cQry += " WHERE D_E_L_E_T_ = ' ' "
+			cQry += "   AND D1_COD = '" + cProduto + "' "
+			cQry += "   AND R_E_C_N_O_ IN(" + cRow + ") "
+			cQry += "   AND D1_FILIAL = '" + xFilial("SD1") + "' "
+
+			dbUseArea(.T.,"TOPCONN", TCGenQry(,,cQry), "QRY", .F., .T.)
+			
+			While !Eof()
+				// Efetua a somatória para calcular a média ponderada 
+				aDadAux[1]	+= QRY->BASE
+				aDadAux[2]	+= QRY->VALOR
+				aDadAux[3]	+= QRY->ICMS_SUBST
+				aDadAux[4]	:=Iif(QRY->ALIQSOL > 0 , QRY->ALIQSOL, QRY->ALIQNDES)
+				aDadAux[5]	+= QRY->BAS_FECP_ST
+				aDadAux[6]	:= QRY->ALQ_FECP_ST
+				aDadAux[7]	+= QRY->VLR_FECP_ST				
+				aDadAux[8]	+= QRY->D1_QUANT 
+				
+				QRY->(DbSkip())
+			Enddo 			
+			QRY->(DbCloseArea())
+
+			//aDadAux[1] 	:= {0/*nBaseIcm*/,0/*nValICM*/,0/*nValSubst*/,0/*nAliqIcm*/,0/*nBfcpant*/,0/*nAfcpant*/,0/*nVfcpant*/}
+				
+			nBaseIcm  	+= aDadAux[1] / aDadAux[8]
+			nValICM 	+= aDadAux[2] / aDadAux[8]
+			nValSubst	+= aDadAux[3] / aDadAux[8]
+			nAliqIcm	:= aDadAux[4]  				// Aliquota 
+			nBfcpant	+= aDadAux[5] / aDadAux[8]
+			nAfcpant	:= aDadAux[6] 				// Aliquota 
+			nVfcpant	+= aDadAux[7] / aDadAux[8]
+				
+			// Somo o totalizador para destacador na mensagem da nota apenas o valor total
+			// valores individuais o cliente precisa consultar o xml ou a consulta completa da nota na Sefaz 
+			//nBaseRet  	+= aDadAux[1] / aDadAux[8] * nQtd
+			//nValorRet	+= aDadAux[2] / aDadAux[8] * nQtd
+		Endif
+	EndIf
+	
+	RestArea(aArea)
+	
+Return
+
+
+/*/{Protheus.doc} sfAtuIcmST
+Função que atualiza informações da SFT conforme últimas entradas do produto com ST 
+@type function
+@version  
+@author Lauschner Consulting - Marcelo Alberto Lauschner
+@since 27/10/2025
+@param cInDoc, character, param_description
+@param cInSerie, character, param_description
+@param cInCliente, character, param_description
+@param cInLoja, character, param_description
+@param cInProduto, character, param_description
+@param cInItem, character, param_description
+@param nInQte, numeric, param_description
+@return variant, return_description
+/*/
+Static Function sfAtuIcmST(cInDoc,cInSerie,cInCliente,cInLoja,cInProduto,cInItem,nInQte) 
+	Local 	aArea		:= GetArea()
+	Local	cQry 		:= " "
+	Local	cRow		:= ""
+	Local 	aDadAux 	:= {0/*nBaseIcm*/,0/*nValICM*/,0/*nValSubst*/,0/*nAliqIcm*/,0/*nBfcpant*/,0/*nAfcpant*/,0/*nVfcpant*/,0/*nD1Quant*/}
+
+
+	DbSelectArea("SD2")
+	DbSetOrder(3) // D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA+D2_COD+D2_ITEM
+	If DbSeek(xFilial("SD2")+cInDoc+cInSerie+cInCliente+cInLoja+cInProduto+cInItem)
+
+		cQry += "SELECT TOP 10 * FROM (SELECT D1.R_E_C_N_O_ AS REG "
+		cQry += "  FROM "+RetSqlName("SD1") + " D1 ," + RetSqlName("SF4") + " F4 "
+		cQry += " WHERE F4.D_E_L_E_T_ = ' ' "
+		cQry += "   AND F4_ESTOQUE = 'S' "
+		cQry += "   AND F4_CODIGO = D1_TES "
+		cQry += "   AND F4_FILIAL = '" + xFilial("SF4") + "'" 
+		cQry += "   AND D1.D_E_L_E_T_ = ' ' "
+		cQry += "   AND D1_COD =  '" + cInProduto + "' "
+		//cQry += "   AND D1_CF IN ('2652','2403','1652','1403','1910','2910','1926','1949','2949','1152') "
+		If SD1->(FieldPos("D1_XBRICMS")) > 0
+			cQry += "   AND (D1_BRICMS+D1_XBRICMS+D1_BASNDES) > 0 "
+		Else
+			cQry += "   AND (D1_BRICMS+D1_BASNDES) > 0 "
+		EndIf
+		cQry += "   AND D1_QUANT > 0 "
+		cQry += "   AND D1_TIPO IN('N','I') "
+		cQry += "   AND D1_DTDIGIT BETWEEN '" +DTOS(dDataBase - 360 * 9 ) + "' AND '" + DTOS(dDataBase) + "' " 
+		cQry += "   AND D1_FILIAL = '" + xFilial("SD1") + "' ) TBL "
+		cQry += " ORDER BY 1 DESC "
+		
+
+
+		dbUseArea(.T.,"TOPCONN", TCGenQry(,,cQry), "QRY", .F., .T.)
+		cRow := ""
+		While !Eof()
+			cRow += "'" + AllTrim(Str(QRY->REG)) + "',"
+			dbSelectArea("QRY")
+			dbSkip()
+		End
+		QRY->(DbCloseArea())
+
+		If !Empty(cRow)
+			
+			cRow := Substr(cRow,1,Len(cRow)-1)
+			
+			cQry := ""
+			If SD1->(FieldPos("D1_XBRICMS")) > 0
+				cQry += "SELECT (D1_BRICMS+D1_XBRICMS+D1_BASNDES) AS BASE,"
+			Else
+				cQry += "SELECT (D1_BRICMS+D1_BASNDES) AS BASE,"
+			EndIf
+				If SD1->(FieldPos("D1_XIMCRET")) > 0
+				cQry += "       (D1_ICMSRET+D1_XIMCRET+D1_ICMNDES) VALOR,"
+			Else
+				cQry += "       (D1_ICMSRET++D1_ICMNDES) VALOR,"
+			EndIf
+			cQry += "       D1_VALICM  ICMS_SUBST,"
+			cQry += "       D1_BSFCPST BAS_FECP_ST,"
+			cQry += "       D1_ALFCPST ALQ_FECP_ST,"
+			cQry += "       D1_VFECPST VLR_FECP_ST,"
+			cQry += "       D1_ALIQSOL ALIQSOL, "
+			cQry += "       D1_ALQNDES ALIQNDES, "
+			cQry += "       D1_QUANT "
+			cQry += "  FROM "+ RetSqlName("SD1")
+			cQry += " WHERE D_E_L_E_T_ = ' ' "
+			cQry += "   AND D1_COD = '" + cInProduto + "' "
+			cQry += "   AND R_E_C_N_O_ IN(" + cRow + ") "
+			cQry += "   AND D1_FILIAL = '" + xFilial("SD1") + "' "
+
+			dbUseArea(.T.,"TOPCONN", TCGenQry(,,cQry), "QRY", .F., .T.)
+			
+			While !Eof()
+				// Efetua a somatória para calcular a média ponderada 
+				aDadAux[1]	+= QRY->BASE
+				aDadAux[2]	+= QRY->VALOR
+				aDadAux[3]	+= QRY->ICMS_SUBST
+				aDadAux[4]	:= Iif(QRY->ALIQSOL > 0 , QRY->ALIQSOL, QRY->ALIQNDES)
+				aDadAux[5]	+= QRY->BAS_FECP_ST
+				aDadAux[6]	:= QRY->ALQ_FECP_ST
+				aDadAux[7]	+= QRY->VLR_FECP_ST				
+				aDadAux[8]	+= QRY->D1_QUANT 
+				
+				QRY->(DbSkip())
+			Enddo 			
+			QRY->(DbCloseArea())
+
+			//aDadAux[1] 	:= {0/*nBaseIcm*/,0/*nValICM*/,0/*nValSubst*/,0/*nAliqIcm*/,0/*nBfcpant*/,0/*nAfcpant*/,0/*nVfcpant*/}
+				
+			//Ao faturar o documento fiscal de saída, os valores obtidos da média das últimas aquisições serão gravados nos novos campos da tabela SFT:
+			// FT_BSTANT - (Tag vBCSTRet)
+			//FT_PSTANT - (Tag pST)
+			//FT_VSTANT - (Tag vICMSSTRet)
+			//FT_VICPRST - (Tag vICMSSubstituto)
+			//FT_BFCANTS - (Tag vBCFCPSTRet)
+			//FT_PFCANTS - (Tag pFCPSTRet)
+			//FT_VFCANTS -(Tag vFCPSTRet)	
+
+			DbSelectArea("SFT")
+			DbSetOrder(1)//FT_FILIAL+FT_TIPOMOV+FT_SERIE+FT_NFISCAL+FT_CLIEFOR+FT_LOJA+FT_ITEM+FT_PRODUTO
+			If DbSeek(xFilial("SFT") + "S" + SD2->(D2_SERIE+D2_DOC+D2_CLIENTE+D2_LOJA) + Padr(SD2->D2_ITEM,Len(SFT->FT_ITEM)) + SD2->D2_COD)
+				RecLock("SFT",.F.)
+				SFT->FT_BSTANT		:= aDadAux[1] / aDadAux[8] * nInQte
+				SFT->FT_VSTANT		:= aDadAux[2] / aDadAux[8] * nInQte
+				SFT->FT_PSTANT		:= aDadAux[4] 
+				SFT->FT_VICPRST		:= aDadAux[3] / aDadAux[8] * nInQte
+				//novos campos do FECP na tabela SFT são: FT_BFCANTS (Base) FT_PFCANTS (Percentual) FT_VFCANTS (Valor) Atenciosamente.
+				SFT->FT_BFCANTS		:= aDadAux[5] / aDadAux[8] * nInQte
+				SFT->FT_PFCANTS		:= aDadAux[6]
+				SFT->FT_VFCANTS 	:= aDadAux[7] / aDadAux[8] * nInQte 
+				SFT->(MsUnlock())
+			Endif 
+		Endif
+		
+	Endif
+
+	RestArea(aArea)
+	
+Return
+
+// Fim Customização Grupo Forta 

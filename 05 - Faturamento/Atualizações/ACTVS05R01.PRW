@@ -211,7 +211,7 @@ Static Function sfImprime(lEnd)
 		(cAliasItem)->(dbSeek(xFilial(cAliasItem)+cNum,.T.))
 
 		//dEntrega	:= &(cPrefixoItem+"entreg")
-
+		
 		nTotal := 0
 		nValIpi := 0
 		nST_tot := 0

@@ -445,7 +445,7 @@ Static Function sfAtuF3k2()
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf  Alltrim(cCfopPv) $ "5922#6922" .And. cSitTrib == "41"//Adicionado em 27/03/2026 (Luciano)
-			cCodAjust	:= "SC8000017"
+			cCodAjust	:= "SC800017"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5905#6905" .And. cSitTrib == "50"

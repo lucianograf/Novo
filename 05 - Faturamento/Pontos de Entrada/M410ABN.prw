@@ -423,6 +423,7 @@ Static Function sfAtuF3k2()
 		// 6117				30	SC800003
 		// 6119				30	SC800003
 		// 6655/6656		30	SC800003
+		// 6922/5922        41  SC800017 - Luciano 27/03/2026
 		// 5914				40	SC810165
 		// 5908/6908		41	SC800006
 		// 5949/6949		41	SC800001
@@ -441,6 +442,10 @@ Static Function sfAtuF3k2()
 			lGrvF3K		:= .T.
 		ElseIf  Alltrim(cCfopPv) $ "5908#6908" .And. cSitTrib == "41"//Adicionado em 20/03/2026 para remessa de comodato (Luciano)
 			cCodAjust	:= "SC800006"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf  Alltrim(cCfopPv) $ "5922#6922" .And. cSitTrib == "41"//Adicionado em 27/03/2026 (Luciano)
+			cCodAjust	:= "SC8000017"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5905#6905" .And. cSitTrib == "50"

@@ -1,0 +1,19 @@
+#INCLUDE "TOTVS.CH"
+ 
+User function F050MDVC() as date
+Local dNextDay := ParamIxb[1] as date//data calculada pelo sistema
+Local cIMposto := ParamIxb[2] as character
+Local dEmissao := ParamIxb[3] as date
+Local dEmis1   := ParamIxb[4] as date
+Local dVencRea := ParamIxb[5] as date
+Local nNextMes := Month(dVencRea)+1 as numeric
+ 
+If cImposto $ "PIS,CSLL,COFINS"//Calcula data 20 do próximo mes
+    dNextDay := CTOD("20/"+Iif(nNextMes==13,"01",StrZero(nNextMes,2))+"/"+;
+    Substr(Str(Iif(nNextMes==13,Year(dVencRea)+1,Year(dVencRea))),2))//Acho o ultimo dia util do periodo desejado
+    dNextday := DataValida(dNextday,.F.)
+EndIf 
+ 
+Return dNextDay
+
+//Este ponto de entrada apenas será acionado se o parâmetro MV_CRTVENC estiver configurado como 2.

@@ -223,43 +223,58 @@ Static Function sfAtuF3k2()
 		//5202/6202		S/CODIGO
 		//5405			S/CODIGO
 		//5411/6411		S/CODIGO
+		//5557          40 SC810195 // Adicionado em 06/04/2026 - Luciano
 		//5655/6655		S/CODIGO
 		//5656/6656		S/CODIGO
 		//5661/6661		S/CODIGO
-		//5910/6910		S/CODIGO
-		//5914		90	SC810165
+		//6910/6117/6119/6655/6656/6661 30  SC800003 //Adicionado em 06/04/2026 - Luciano
+		//5914		    40#90	SC810165 // Adicionado CST 40 em 06/04/2026 - Luciano
 		//5923/6923		S/CODIGO
 		//5927			S/CODIGO
-		//5949/6949		S/CODIGO
+		//5949/6949		41 SC800001 // Adicionado em 06/04/2026 - Luciano
 		//5404			S/CODIGO
 		//5915/6915	50	SC840007
 		//5916/6916	50	SC840008
 		//5912/6912	50	SC840021
 		//5913/6913	50	SC840021
 		//5905	    50  SC840004 0000180
+		//5901/6901		50	SC840007 //Adicionado em 06/04/2026 - Luciano
+		//5908/6908		41	SC800006 //Adicionado em 06/04/2026 para remessa de comodato (Luciano)
 
-		If Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "90"
+		If Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "40#90" //Adicionado CST 40 em 06/04/2026 - Luciano
 			cCodAjust	:= "SC810165"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5915#6915" .And. cSitTrib == "50"
+		ElseIf Alltrim(cCfopPv) $ "5901#6901#5915#6915" .And. cSitTrib == "50" //Adicionado em 06/04/2026 - Luciano
 			cCodAjust	:= "SC840007"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "6910#6117#6119#6655#6656#6661" .And. cSitTrib == "30" //Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC800003"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5916#6916" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840008"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5912#6912" .And. cSitTrib == "50"
-			cCodAjust	:= "SC840021"
-			cCodVlDec	:= "0000180"
-			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5913#6913" .And. cSitTrib == "50"
+		ElseIf Alltrim(cCfopPv) $ "5912#6912#5913#6913" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5905#6905" .And. cSitTrib == "50"
 			cCodAjust	:= "SC840004"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "5908#6908" .And. cSitTrib == "41" //Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC800006"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "5949#6949" .And. cSitTrib == "41" //Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC800001"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "5557" .And. cSitTrib == "40" //Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC810195"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		Endif
@@ -292,26 +307,39 @@ Static Function sfAtuF3k2()
 		//*5102/6102(prod. Importados)	100, 200, 600	SC850065
 		//*5102/6102		20	SC820028
 		//*5102/6102(não importados)		S/CODIGO
+		//*5117/6117		100 SC850065
+		//*6117             130  SC800003
 		//*5202/6202		S/CODIGO
 		//*5655				110, 210	SC850065
 		//*5656				110, 210	SC850065
 		//*5901/6901		50	SC840007
 		//*5910/6910(prod.importado)	100, 200, 600	SC850065
 		//*5910/6910(NÃO IMPORTADO)		S/CODIGO
+		//*6910             130  SC800003
 		//*5912/6912		50	SC840021
 		//*5913/6913		50	SC840021
-		//*5914				90	SC810165
-		//*5915/6915		41	SC840007
-		//*5916/6916		41	SC840008
+		//*5914				40#90	SC810165
+		//*5915/6915		41#50	SC840007
+		//*5916/6916		41#50	SC840008
 		//*5949/6949(prod.importados)	100, 200, 110, 210	SC850065
 		//*5949/6949(não importados)		S/CODIGO
 		//*5927				S/CODIGO
 		//*6655				110, 130, 210, 230	SC800003
+		//*6655/6656        130  SC800003 - Adicionado em 06/04/2026 - Luciano
 		//*6656				100, 200	SC850065
 		//*7102				141, 241	SC800002
 		//*7949				141, 241	SC800002
+		//*7654             30 SC800002 - Adicionado em 06/04/2026 - Luciano
 		If Alltrim(cCfopPv) $ "5102#6102" .And. cClasFis $ "100#200#600"
 			cCodAjust	:= "SC850065"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "5117#6117" .And. cSitTrib == "100" // Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC850065"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "6117" .And. cSitTrib == "130" // Adicionado em 06/04/2026 - Luciano
+			cCodAjust	:= "SC800003"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "5102#6102" .And. cSitTrib == "20"
@@ -342,11 +370,11 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "90"
+		ElseIf Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "40#90" // Adicionado em 06/04/2026 - Luciano
 			cCodAjust	:= "SC810165"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5915#6915" .And. cSitTrib == "41"
+		ElseIf Alltrim(cCfopPv) $ "5915#6915" .And. cSitTrib == "41#50" //Adicionado CST 50 em 06/04/2026 - Luciano
 			cCodAjust	:= "SC840007"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
@@ -358,7 +386,11 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC850065"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "6655" .And. cClasFis $ "110#1303210#230"
+		ElseIf Alltrim(cCfopPv) $ "6655#6656" .And. cClasFis $ "130" //adicioando em 06/04/2026 - Luciano
+			cCodAjust	:= "SC800003"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "6910" .And. cClasFis $ "130" //adicioando em 06/04/2026 - Luciano
 			cCodAjust	:= "SC800003"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
@@ -367,6 +399,10 @@ Static Function sfAtuF3k2()
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 		ElseIf Alltrim(cCfopPv) $ "7102#7949" .And. cClasFis $ "141#241"
+			cCodAjust	:= "SC800002"
+			cCodVlDec	:= "0000180"
+			lGrvF3K		:= .T.
+		ElseIf Alltrim(cCfopPv) $ "7654" .And. cClasFis $ "30" // Adicionado em 06/04/2026 - Luciano
 			cCodAjust	:= "SC800002"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
@@ -399,6 +435,7 @@ Static Function sfAtuF3k2()
 		//5102/6102			S/CODIGO
 		//*5102/6102		20	SC820028
 		//5117/6117			S/CODIGO
+		//5152           51 SC830073 - Adicionado em 06/04/2026 - Luciano
 		//5202/6202			S/CODIGO
 		//6552			90	SC810193
 		//5554/6554		50	SC840011
@@ -430,7 +467,7 @@ Static Function sfAtuF3k2()
 		// 5552				40	SC810192
 		// 6552				40	SC810193
 		// 5557				40	SC810195
-		// 7102
+		// 7102             41  SC800002 //Adicionado em 06/04/2026 - Luciano
 
 		If Alltrim(cCfopPv) $ "5152#6152" .And. cSitTrib == "51"
 			cCodAjust	:= "SC830073"
@@ -460,11 +497,7 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "90"
-			cCodAjust	:= "SC810165"
-			cCodVlDec	:= "0000180"
-			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "40"
+		ElseIf Alltrim(cCfopPv) $ "5914" .And. cSitTrib == "40#90"
 			cCodAjust	:= "SC810165"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
@@ -488,7 +521,7 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC800001"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "6655" .And. cClasFis $ "110#1303210#230"
+		ElseIf Alltrim(cCfopPv) $ "6655" .And. cClasFis $ "110#210"
 			cCodAjust	:= "SC800003"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
@@ -496,11 +529,7 @@ Static Function sfAtuF3k2()
 			cCodAjust	:= "SC850065"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "7102#7949" .And. cClasFis $ "141#241"
-			cCodAjust	:= "SC800002"
-			cCodVlDec	:= "0000180"
-			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "7102" .And. cSitTrib == "41"
+		ElseIf Alltrim(cCfopPv) $ "7102#7949" .And. cClasFis $ "41"
 			cCodAjust	:= "SC800002"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.

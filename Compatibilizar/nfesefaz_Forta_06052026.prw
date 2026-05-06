@@ -2603,7 +2603,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 							if lNfCup
 								cTpCliente := "F"
 							EndIf
-
+							
 							// Trecho Customizado - Grupo Forta - Adição mensagem Danfe
 							If !AllTrim(SC5->C5_ZMSGNF) $ cMensCli .And. !Empty(SC5->C5_ZMSGNF)
 								If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
@@ -3197,6 +3197,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 									EndIf
 								EndIf
 							EndIf
+						Endif	
 							// Indicador de Produção em escala relevante, conforme Cláusula 23 do Convenio ICMS 52/2017
 							If AliasIndic("D3E")
 								dbSelectArea("D3E")
@@ -4185,7 +4186,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 						If !len(aCsosn)>0 
 							aadd(aCsosn,"")  
 					   	Endif
-					endif	
+						
 
 					aadd(aTotalItem, {(cAliasSD2)->D2_ITEM, (aTotal[2] + aTotal[3]) - nAcumula})
 					nAcumula += aTotalItem[len(aTotalItem), 2]

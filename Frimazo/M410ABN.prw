@@ -209,22 +209,27 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 
 	If cEmpAnt+cFilAnt $ "0501"		//FRIMAZO
 		// Validações já existente
-		If Alltrim(cCfopPv) $ "5663" .And. cClasFis == "50"
+		If Alltrim(cCfopPv) $ "5663" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840004"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810032"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf Alltrim(cCfopPv) $ "6101" .And. cClasfis == "40"
+		ElseIf Alltrim(cCfopPv) $ "6551" .And. cClasFis $ "40"
+			cCodAjust	:= "SC810193"
+			cCodVlDec	:= "0000200"
+			lGrvF3K		:= .T.
+			cTipValor	:= "9"
+		ElseIf Alltrim(cCfopPv) $ "6101" .And. cClasfis $ "40"
 			cCodAjust	:= "SC810176"
 			cCodVlDec	:= "0000200" // icms imune ou não tribuato - valor mercadoria
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf Alltrim(cCfopPv) $ "5907" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5907" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840004"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
@@ -234,67 +239,67 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 		// Validações revisadas em maio/2025
 		//CFOP			CST	CÓDIGO AJUSTE	TIPO VALOR
 		//5901/6901		50	SC840007	Contábil
-		If cCfopPv $ "5901#6901" .And. cClasFis == "50"
+		If cCfopPv $ "5901#6901" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840007"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5915			50	SC840007	Contábil
-		ElseIf cCfopPv $ "5915" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5915" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840007"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5902/6902		50	SC840008	Contábil
-		ElseIf cCfopPv $ "5902#6902" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5902#6902" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840008"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//6910			20	SC800016	Valor do ICMS
-		ElseIf cCfopPv $ "6910" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "6910" .And. cClasFis $ "20"
 			cCodAjust	:= "SC800016"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5912/6912		50	SC840021	Contábil
-		ElseIf cCfopPv $ "5912#6912" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5912#6912" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5913/6913		50	SC840021	Contábil
-		ElseIf cCfopPv $ "5913#6913" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5913#6913" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5914/6914		40	SC810165	Contábil
-		ElseIf cCfopPv $ "5914#6914" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5914#6914" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810165"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5551/5553		40	SC810192	Contábil
-		ElseIf cCfopPv $ "5551#5553" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5551#5553" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810192"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5554			50	SC840012	Contábil
-		ElseIf cCfopPv $ "5554" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5554" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840012"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5908			41	SC800006	Contábil
-		ElseIf cCfopPv $ "5908" .And. cClasFis == "41"
+		ElseIf cCfopPv $ "5908" .And. cClasFis $ "41"
 			cCodAjust	:= "SC800006"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5101			40	SC810176	Contábil
-		ElseIf cCfopPv $ "5101" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5101" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810176"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
@@ -313,13 +318,13 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 			//	lGrvF3K		:= .T.
 			//	cTipValor	:= "9"
 			//6101			20	SC820032	Valor do ICMS - Redução de Base de Cálculo
-		ElseIf cCfopPv $ "6101" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "6101" .And. cClasFis $ "20"
 			cCodAjust	:= "SC820032"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5905/5906		50	SC840005	Contábil
-		ElseIf cCfopPv $ "5905#5906" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5905#5906" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840005"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
@@ -330,17 +335,17 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 		//5907			50	SC840004	Contábil
 		//5102  		20 	SC820033 	 000190
 		//6108 		 	20  SC820033  	 000190
-		If cCfopPv $ "5907" .And. cClasFis == "50"
+		If cCfopPv $ "5907" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840004"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "5102" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "5102" .And. cClasFis $ "20"
 			cCodAjust	:= "SC820033"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "6108" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "6108" .And. cClasFis $ "20"
 			cCodAjust	:= "SC820033"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
@@ -352,22 +357,22 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 		//5910/6910 20 SP020740	Contábil - CÓD. DECLARATÓRIO = 0000200
 		//6102  	20 SP020450 Contábil - CÓD. DECLARATÓRIO = 0000200
 		//5905	 	41 SP010070 Contábil - CÓD. DECLARATÓRIO = 0000180
-		If cCfopPv $ "5905" .And. cClasFis == "41"
+		If cCfopPv $ "5905" .And. cClasFis $ "41"
 			cCodAjust	:= "SP010070"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "5102#6152" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "5102#6152" .And. cClasFis $ "20"
 			cCodAjust	:= "SP020740"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "5910#6910" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "5910#6910" .And. cClasFis $ "20"
 			cCodAjust	:= "SP020740"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "6102" .And. cClasFis == "20"
+		ElseIf cCfopPv $ "6102" .And. cClasFis $ "20"
 			cCodAjust	:= "SP020450"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
@@ -376,49 +381,49 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 	ElseIf cEmpAnt+cFilAnt $ "1102"		//ONIX FILIAL 02 SC
 		//CFOP			CST	CÓDIGO AJUSTE	TIPO VALOR
 		//5912			50	SC840021	Contábil
-		If cCfopPv $ "5912" .And. cClasFis == "50"
+		If cCfopPv $ "5912" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5913			50	SC840021	Contábil
-		ElseIf cCfopPv $ "5913" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5913" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840021"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5552			40	SC810193	Contábil
-		ElseIf cCfopPv $ "5552" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5552" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810193"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5551/5553		40	SC810192	Contábil
-		ElseIf cCfopPv $ "5551#5553" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5551#5553" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810192"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5151/5152		51	SC830073	Contábil
-		ElseIf cCfopPv $ "5151#5152" .And. cClasFis == "51"
+		ElseIf cCfopPv $ "5151#5152" .And. cClasFis $ "51"
 			cCodAjust	:= "SC830073"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5554			50	SC840012	Contábil
-		ElseIf cCfopPv $ "5554" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5554" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840012"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5908			41	SC800006	Contábil
-		ElseIf cCfopPv $ "5908" .And. cClasFis == "41"
+		ElseIf cCfopPv $ "5908" .And. cClasFis $ "41"
 			cCodAjust	:= "SC800006"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5905/5906		50	SC840005	Contábil
-		ElseIf cCfopPv $ "5905#5906" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5905#5906" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840005"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
@@ -426,101 +431,101 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 		Endif
 	ElseIf cEmpAnt+cFilAnt $ "1103"		//ONIX FILIAL 03 PR
 		// Chamado 28.996 - NCM + cfop + cst +( NCM Especifica - VENDA DIFERIMENTO PARCIAL)
-		If Alltrim(cPosIpi) $ "33074900" .And. Alltrim(cCfopPv) $ "5102" .And. cClasFis == "51"
+		If Alltrim(cPosIpi) $ "33074900" .And. Alltrim(cCfopPv) $ "5102" .And. cClasFis $ "51"
 			cCodAjust	:= "PR830003"
 			cCodVlDec	:= "0000170"
 			lGrvF3K		:= .T.
 			cTipValor	:= "8"
 			// VENDA DIFERIMENTO PARCIAL
-		ElseIf Alltrim(cCfopPv) $ "5102" .And. cClasFis == "51"
+		ElseIf Alltrim(cCfopPv) $ "5102" .And. cClasFis $ "51"
 			cCodAjust	:= "PR830001"
 			cCodVlDec	:= "0000170"
 			lGrvF3K		:= .T.
 			cTipValor	:= "8"
 			// REMESSA BRINDE
-		ElseIf Alltrim(cCfopPv) $ "5910" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5910" .And. cClasFis $ "41"
 			cCodAjust	:= "PR809999"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// BONIFICAÇÃO DIFERIMENTO PARCIAL
-		ElseIf Alltrim(cCfopPv) $ "5910" .And. cClasFis == "51"
+		ElseIf Alltrim(cCfopPv) $ "5910" .And. cClasFis $ "51"
 			cCodAjust	:= "PR830001"
 			cCodVlDec	:= "0000170"
 			lGrvF3K		:= .T.
 			cTipValor	:= "8"
 			// REM. ARMAZENAGEM
-		ElseIf Alltrim(cCfopPv) $ "5905" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5905" .And. cClasFis $ "50"
 			cCodAjust	:= "PR840009"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			// REM. ARMAZENAGEM
-		ElseIf Alltrim(cCfopPv) $ "5663" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5663" .And. cClasFis $ "50"
 			cCodAjust	:= "PR840009"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			// REMESSA VASILHAME
-		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis $ "40"
 			cCodAjust	:= "PR810171"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// TRANSF. ATIVO
-		ElseIf Alltrim(cCfopPv) $ "5555" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5555" .And. cClasFis $ "41"
 			cCodAjust	:= "PR800014"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// VENDA/BAIXA ATIVO
-		ElseIf Alltrim(cCfopPv) $ "5551" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5551" .And. cClasFis $ "41"
 			cCodAjust	:= "PR800013"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REM. EXPOSIÇÃO OU FEIRA
-		ElseIf Alltrim(cCfopPv) $ "5914" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5914" .And. cClasFis $ "40"
 			cCodAjust	:= "PR800013"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// RET. VASILHAME
-		ElseIf Alltrim(cCfopPv) $ "5921" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5921" .And. cClasFis $ "40"
 			cCodAjust	:= "PR810171"
 			cCodVlDec	:= "0000180"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REMESSA COMODATO
-		ElseIf Alltrim(cCfopPv) $ "5908" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5908" .And. cClasFis $ "41"
 			cCodAjust	:= "PR800013"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REMESSA TROCA - ATIVO
-		ElseIf Alltrim(cCfopPv) $ "5949" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5949" .And. cClasFis $ "41"
 			cCodAjust	:= "PR800013"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REMESSA USO FORA DA EMPRESA
-		ElseIf Alltrim(cCfopPv) $ "5554" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5554" .And. cClasFis $ "41"
 			cCodAjust	:= "PR800013"
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REMESSA CONSERTO
-		ElseIf Alltrim(cCfopPv) $ "5915" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5915" .And. cClasFis $ "50"
 			cCodAjust	:= "PR840014"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// REMESSA CONSERTO
-		ElseIf Alltrim(cCfopPv) $ "5916" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5916" .And. cClasFis $ "50"
 			cCodAjust	:= "PR840014"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "3"
 			// Remessa de mercadoria ou bem para demonstração.
-		ElseIf Alltrim(cCfopPv) $ "5912" .And. cClasFis == "50"
+		ElseIf Alltrim(cCfopPv) $ "5912" .And. cClasFis $ "50"
 			cCodAjust	:= "PR840026"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
@@ -538,24 +543,24 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 
 		// VENDA DIFERIMENTO PARCIAL
 		// Chamado 25816 - 19/04/2021
-		If Alltrim(cCfopPv) $ "5102" .And. cClasFis == "51"
+		If Alltrim(cCfopPv) $ "5102" .And. cClasFis $ "51"
 			cCodAjust	:= "RS052158"
 			cCodVlDec	:= "0000170"
 			cTipValor	:= "4"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5114" .And. cClasFis == "90"
+		ElseIf Alltrim(cCfopPv) $ "5114" .And. cClasFis $ "90"
 			cCodAjust	:= "RS052411"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5554#5908#6552#5910" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5554#5908#6552#5910" .And. cClasFis $ "41"
 			cCodAjust	:= "RS051514"
 			cCodVlDec	:= "0001003"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "6659" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "6659" .And. cClasFis $ "41"
 			cCodAjust	:= "RS051502"
 			cCodVlDec	:= "0001001"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5905#5663" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5905#5663" .And. cClasFis $ "41"
 			cCodAjust	:= "RS051510"
 			cCodVlDec	:= "0001001"
 			lGrvF3K		:= .T.
@@ -564,11 +569,11 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 			cCodVlDec	:= "0001001"
 			lGrvF3K		:= .T.
 			// VENDA/BAIXA ATIVO
-		ElseIf Alltrim(cCfopPv) $ "5551" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5551" .And. cClasFis $ "40"
 			cCodAjust	:= "RS051514"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5911" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5911" .And. cClasFis $ "40"
 			cCodAjust	:= "RS051004"
 			cCodVlDec	:= "0001001"
 			lGrvF3K		:= .T.
@@ -576,44 +581,44 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 			cCodAjust	:= "RS051512"
 			cCodVlDec	:= "0001001"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5920" .And. cClasFis $ "40"
 			cCodAjust	:= "RS051011"
 			cCodVlDec	:= "0001002" // Remessa de Vasilhames e Sacarias
 			lGrvF3K		:= .T.
 			// RET. VASILHAME
-		ElseIf Alltrim(cCfopPv) $ "5921#6921" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5921#6921" .And. cClasFis $ "40"
 			cCodAjust	:= "RS051012"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5405" .And. cClasFis == "60" .And. cEmpAnt == "02"
+		ElseIf Alltrim(cCfopPv) $ "5405" .And. cClasFis $ "60" .And. cEmpAnt == "02"
 			cCodAjust	:= "RS052427"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5405" .And. cClasFis == "60" .And. cEmpAnt == "11"
+		ElseIf Alltrim(cCfopPv) $ "5405" .And. cClasFis $ "60" .And. cEmpAnt == "11"
 			cCodAjust	:= "RS052412"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5656#5655" .And. cClasFis == "60"
+		ElseIf Alltrim(cCfopPv) $ "5656#5655" .And. cClasFis $ "60"
 			cCodAjust	:= "RS052411"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf cEmpAnt == "11" .And. Alltrim(cPosIpi) $ "84213990#84219999#84814000#84212100#84212300" .And.  Alltrim(cCfopPv) $ "5927#5910" .And. cClasFis == "60"
+		ElseIf cEmpAnt == "11" .And. Alltrim(cPosIpi) $ "84213990#84219999#84814000#84212100#84212300" .And.  Alltrim(cCfopPv) $ "5927#5910" .And. cClasFis $ "60"
 			cCodAjust	:= "RS052427"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf cEmpAnt == "11" .And. Alltrim(cPosIpi) $ "27101932#27101931" .And.  Alltrim(cCfopPv) $ "5910" .And. cClasFis == "60"
+		ElseIf cEmpAnt == "11" .And. Alltrim(cPosIpi) $ "27101932#27101931" .And.  Alltrim(cCfopPv) $ "5910" .And. cClasFis $ "60"
 			cCodAjust	:= "RS052411"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5119#5656#5655#5910#5912#5923#5927#5949" .And. cClasFis == "60"
+		ElseIf Alltrim(cCfopPv) $ "5119#5656#5655#5910#5912#5923#5927#5949" .And. cClasFis $ "60"
 			cCodAjust	:= "RS052001"
 			cCodVlDec	:= "0001002"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5927" .And. cClasFis == "41"
+		ElseIf Alltrim(cCfopPv) $ "5927" .And. cClasFis $ "41"
 			cCodAjust	:= "RS051514"
 			cCodVlDec	:= "0001003"
 			lGrvF3K		:= .T.
-		ElseIf Alltrim(cCfopPv) $ "5206" .And. cClasFis == "40"
+		ElseIf Alltrim(cCfopPv) $ "5206" .And. cClasFis $ "40"
 			cCodAjust	:= "RS051408"
 			cCodVlDec	:= "0001003"
 			lGrvF3K		:= .T.
@@ -621,36 +626,36 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 	ElseIf cEmpAnt+cFilAnt $ "1106"		//ONIX FILIAL 06
 		//CFOP			CST	CÓDIGO AJUSTE	TIPO VALOR
 		//5551/5553		40	SC810192	Contábil
-		If cCfopPv $ "5551#5553" .And. cClasFis == "40"
+		If cCfopPv $ "5551#5553" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810192"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5656			40	SC810214	Contábil	Para notas de resíduo de óleo
-		ElseIf cCfopPv $ "5656" .And. cClasFis == "40"
+		ElseIf cCfopPv $ "5656" .And. cClasFis $ "40"
 			cCodAjust	:= "SC810214"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5554			50	SC840012	Contábil
-		ElseIf cCfopPv $ "5554" .And. cClasFis == "50"
+		ElseIf cCfopPv $ "5554" .And. cClasFis $ "50"
 			cCodAjust	:= "SC840012"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5949			51	SC830085	Contábil	Para notas de sucatas
-		ElseIf cCfopPv $ "5949" .And. cClasFis == "51"
+		ElseIf cCfopPv $ "5949" .And. cClasFis $ "51"
 			cCodAjust	:= "SC830085"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
 			//5151/5152		51	SC830073	Contábil
-		ElseIf cCfopPv $ "5151#5152" .And. cClasFis == "51"
+		ElseIf cCfopPv $ "5151#5152" .And. cClasFis $ "51"
 			cCodAjust	:= "SC830073"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
-		ElseIf cCfopPv $ "5949" .And. cClasFis == "51"
+		ElseIf cCfopPv $ "5949" .And. cClasFis $ "51"
 			cCodAjust	:= "SC830085"
 			cCodVlDec	:= "0000190"
 			lGrvF3K		:= .T.

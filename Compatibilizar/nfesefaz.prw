@@ -14958,6 +14958,26 @@ Static Function GetDocRef(aDocAjuste, cItem)
 
 return cAliasQry
 
+/*/{Protheus.doc} sfConcatMsg
+//Concatena mensagem 
+@author Administrator
+@since 04/07/2017
+@version undefined
+@param cRetorno, characters, descricao
+@param cMsgConc, characters, descricao
+@type function
+/*/
+Static Function sfConcatMsg(cRetorno,cMsgConc)
+
+	If !( cMsgConc $ cRetorno)
+		If Len(cRetorno) > 0 .And. SubStr(cRetorno, Len(cRetorno), 1) <> " "
+			cRetorno += " "
+		EndIf
+		cRetorno += cMsgConc
+	Endif
+
+Return
+
 /*/
 	{Protheus.doc} RetValEIC64
 	Função para validar se devemos ou não somar valores ao Total dos Itens, Validação para o EIC

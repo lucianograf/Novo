@@ -3637,6 +3637,8 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 					
 
 						If AliasIndic("CD6")  .And. CD6->(FieldPos("CD6_QTAMB")) > 0 .And. CD6->(FieldPos("CD6_UFCONS")) > 0  .And. CD6->(FieldPos("CD6_BCCIDE")) > 0 .And. CD6->(FieldPos("CD6_VALIQ")) > 0 .And. CD6->(FieldPos("CD6_VCIDE")) > 0 .And. SB1->(FieldPos("B1_CODSIMP")) > 0 
+						If SB1->(FieldPos("B1_CODSIMP")) > 0 
+                        Endif
 							aCombMono := {}
 							//(+---------------------------------------------------------------------------
 							// Customização Atrialub 

@@ -3215,6 +3215,15 @@ EndIf
 			nLinCalc+=10
 		Next nX
 
+		cStrAux		:=	AllTrim(NoChar(oEmitente:_EnderEmit:_xLgr:Text,lConverte))+", "+AllTrim(oEmitente:_EnderEmit:_Nro:Text)
+
+		nForTo		:=	Len(cStrAux)/45
+		nForTo		+=	Iif(nForTo>Round(nForTo,0),Round(nForTo,0)+1-nForTo,nForTo)
+		For nX := 1 To nForTo
+			oDanfe:Say(nLinCalc,096,SubStr(cStrAux,Iif(nX==1,1,((nX-1)*40)+1),40),oFont08N:oFont)
+			nLinCalc+= 10
+		Next nX
+
 		If Type("oEmitente:_EnderEmit:_xCpl") <> "U"
 			cStrAux		:=	"Complemento: "+AllTrim(NoChar(oEmitente:_EnderEmit:_xCpl:TEXT,lConverte))
 			nForTo		:=	Len(cStrAux)/40
@@ -6900,20 +6909,20 @@ static function Fatura(oFatura,nFaturas,lFat853)
 					Case nX == 1
 						If nFaturas > 1
 							AAdd(aAux, AllTrim(oFatura:_Dup[nY]:_nDup:TEXT))
-						/*Else
-							AAdd(aAux, AllTrim(oFatura:_Dup:_nDup:TEXT))*/ //Comentado em 29/07/2026 - Luciano
+						Else
+							AAdd(aAux, AllTrim(oFatura:_Dup:_nDup:TEXT)) //descomentado em 06/08/2026 - Luciano (Nº. Fatura)
 						EndIf
 					Case nX == 2
 						If nFaturas > 1
 							AAdd(aAux, AllTrim(ConvDate(oFatura:_Dup[nY]:_dVenc:TEXT)))
-						/*Else
-							AAdd(aAux, AllTrim(ConvDate(oFatura:_Dup:_dVenc:TEXT)))*///Comentado em 29/07/2026 - Luciano
+						Else
+							AAdd(aAux, AllTrim(ConvDate(oFatura:_Dup:_dVenc:TEXT)))//descomentado em 06/08/2026 - Luciano (Venc. Fatura)
 						EndIf
 					Case nX == 3
 						If nFaturas > 1
 							AAdd(aAux, AllTrim(TransForm(Val(oFatura:_Dup[nY]:_vDup:TEXT), "@E 9,999,999,999,999.99")))
-						/*Else
-							AAdd(aAux, AllTrim(TransForm(Val(oFatura:_Dup:_vDup:TEXT), "@E 9,999,999,999,999.99")))*///Comentado em 29/07/2026 - Luciano
+						Else
+							AAdd(aAux, AllTrim(TransForm(Val(oFatura:_Dup:_vDup:TEXT), "@E 9,999,999,999,999.99")))//descomentado em 06/08/2026 - Luciano(Valor Fatura)
 						EndIf
 					EndCase
 				Next nY

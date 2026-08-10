@@ -5,7 +5,7 @@
 Static lSpedCodOnu	:= nil
 Static lNT23004		:= nil
 Static lCDVLanc		:= nil
-//RDMAKE antigo
+//RDMAKE antigo - nfesefaz_BR_LUB_07042026
 /*/
 ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
@@ -4784,7 +4784,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 						// Adição do código do cliente e loja para na Razao Social para informar
 						//	aadd(aDest,SA1->A1_NOME)
 						aadd(aDest,Alltrim(SA1->A1_NOME) + " ("+SA1->A1_COD+"/"+SA1->A1_LOJA+")")
-						//)+--------------------------------------------------------------------------
+						//)+--------------------
 						aadd(aDest,MyGetEnd(SA1->A1_END,"SA1")[1])
 
 						If MyGetEnd(SA1->A1_END,"SA1")[2]<>0
@@ -7448,7 +7448,7 @@ User Function XmlNfeSef(cTipo,cSerie,cNota,cClieFor,cLoja,cNotaOri,cSerieOri)
 								Endif
 								nBaseRet	:= 0
 								nValorRet   := 0
-								//)+-------------------------------------------------------------------------------------------------
+								//)+-------------------
 
 								cString += NfeTotal(aTotal,aRetido,aICMS,aICMSST,lIcmDevol,cVerAmb,aISSQN,nVicmsDeson,aNota,nVIcmDif,aAgrPis,aAgrCofins,nValLeite )
 								cString += NfeTransp(cModFrete,aTransp,aImp,aVeiculo,aReboque,aEspVol,cVerAmb,aReboqu2,cMunDest)

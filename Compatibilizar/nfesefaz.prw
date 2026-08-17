@@ -9678,13 +9678,15 @@ Static Function NfeItem(aProd		, aICMS			, aICMSST	, aIPI			, aPIS	   		, aPISST
 		//Imposto sobre bens e serviço e/ou contributos sobre bens e serviços
 		setOtherInfo(@oItensReforma,"aNota",aNota)
 		cString += oXmlRefTri:GetXmlIbsCbs( cDocItemId /*cDocumentItemId*/, oNfTciIntg /*oNfTciIntg*/, nil/*oItensReforma*/, oItensReforma /*oItensRefNfe*/ ) // getXmlIBSCBS(cDocumentItemId, oNfTciIntg, oItensReforma, oItensRefNfe )
-		If aNota[5] <> "D"
-			cString := StrTran( cString, ;
-								SubStr( cString, ;
-										At("<gDevTrib>", cString), ;
-										At("</gDevTrib>", cString) - At("<gDevTrib>", cString) + Len("</gDevTrib>") ),;
-								"" )
-		EndIf
+		//Customizado para evitar rejeição 1111 em NFS de Entrada de Devolução E Saídas - 11/08/2026
+	If aNota[5] $ "D|N"
+		cString := StrTran( cString, ;
+			SubStr( cString, ;
+			At("<gDevTrib>", cString), ;
+			At("</gDevTrib>", cString) - At("<gDevTrib>", cString) + Len("</gDevTrib>") ),;
+			"" )
+	EndIf
+///////////// - Fim
 	endif
 
 	If lMvPisCofD  .And. aDest[9] == 'PR'  // Lei Est. PR 17.127/12 informar todos os impostos na Danfe

@@ -1,20 +1,64 @@
 #Include 'Protheus.ch'
 //Gatilho para carregar Centro de Custo ao dar entrada em NF de Bonificação
 
+/*User Function ENGCCUSTO()
+
+	Local cCFOP := AllTrim(M->D1_CF)
+	Local cCCusto := ""
+
+	If cCFOP $ "1910#2910"
+		cCCusto := "018150001"
+	EndIf
+Return cCCusto*/
+
+/*User Function ENGCCUSTO()
+
+Local cCFOP := AllTrim(M->D1_CF)
+
+Local cCCusto := ""
+If cCFOP == "1910" .Or. cCFOP == "2910"
+
+cCCusto := "018150001"
+
+EndIf
+
+Return cCCusto*/
+
+/*User Function ENGCCUSTO()
+
+
+Local cCFOP := AllTrim(M->D1_CF)
+
+MsgInfo("CFOP: " + cCFOP)
+
+Return ""*/
+
 User Function ENGCCUSTO()
 
-	Local cEmpAnt := " "
-	Local aFiliais := {"01","03","05"}
-	Local cFilial := xFilial("SD1")
-	Local cCFOP := " "
-	Local cCCusto := GetNewPar("LG_CCUSTOS","")
+Local cCFOP := AllTrim(M->D1_CF)
+Local cCCusto := ""
 
-	If cEmpAnt == "99" .And. cCFOP == SD1-> D1_CF $ "1910#2910"
-		cCCusto == GetNewPar("LG_CCUSTOS","")
-	Endif
+If cCFOP == "1910" .Or. cCFOP == "2910"
+
+cCCusto := GetNewPar("LG_CCUSTOS"," ")
+
+EndIf
 
 Return cCCusto
 
+/*
+User Function ENGCCUSTO()
+ 
+Local cCFOP := AllTrim(M->D1_CF)
+
+If cCFOP == "1910" .Or. cCFOP == "2910"
+
+Return GetNewPar("LG_CCUSTOS"," ")
+
+EndIf
+
+Return ""
+*/
 
 
 

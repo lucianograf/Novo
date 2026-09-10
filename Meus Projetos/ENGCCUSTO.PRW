@@ -46,19 +46,25 @@ EndIf
 
 Return cCCusto
 
-/*
-User Function ENGCCUSTO()
- 
-Local cCFOP := AllTrim(M->D1_CF)
 
-If cCFOP == "1910" .Or. cCFOP == "2910"
 
-Return GetNewPar("LG_CCUSTOS"," ")
+/*User Function ENGCCUSTO()
 
-EndIf
+Local cCFOP   := AllTrim(M->D1_CF)
+Local cCCusto := ""
 
-Return ""
+Do Case
+    Case cCFOP == "1910"
+        cCCusto := GetNewPar("LG_CCUSTOS","")
+
+    Case cCFOP == "2910"
+        cCCusto := GetNewPar("LG_CCUSTOS","")
+EndCase
+
+Return cCCusto
 */
+
+
 
 
 

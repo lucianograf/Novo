@@ -299,6 +299,11 @@ Static Function sfAtuF3k2(cInProduto,cInCf,cInClasFis)
 			cCodVlDec	:= "0000200"
 			lGrvF3K		:= .T.
 			cTipValor	:= "9"
+		ElseIf cCfopPv $ "5911#5911" .And. cClasFis == "40"
+			cCodAjust	:= "SC810043"
+			cCodVlDec	:= "0000200"
+			lGrvF3K		:= .T.
+			cTipValor	:= "9"
 			// Aguardando definição do cfop 5101 x 00
 			//5101			00	SC820032	Valor do ICMS - Saídas interestaduais, com ICMS "com redução"
 			//If cCfopPv $ "5101" .And. cClasFis == "00"
